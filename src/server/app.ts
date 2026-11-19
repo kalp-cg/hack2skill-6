@@ -123,16 +123,22 @@ function isQuotaError(err: unknown): boolean {
   return msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED');
 }
 
+/** Per-attempt budget: primary + fallback must both fit inside the 60 s serverless limit. */
+const ATTEMPT_TIMEOUT_MS = 22_000;
+
+class AttemptTimeoutError extends Error {}
+
 /**
- * Retries transient failures, and on a per-model quota error moves straight to the fallback
- * model (quotas are tracked per model, so it usually still has headroom).
+ * Retries transient failures. On a per-model quota error or a stalled request it moves straight
+ * to the fallback model (quotas and load are per model, so it usually still has headroom).
  */
 export async function generateContentWithResilience(
   ai: Pick<GoogleGenAI, 'models'>,
   params: {
     contents: string;
     config?: Record<string, unknown>;
-  }
+  },
+  attemptTimeoutMs = ATTEMPT_TIMEOUT_MS
 ) {
   const attempts = [
     { model: PRIMARY_MODEL_ID, delayMs: 0 },
@@ -147,19 +153,31 @@ export async function generateContentWithResilience(
     if (attempt.delayMs > 0) {
       await new Promise((r) => setTimeout(r, attempt.delayMs));
     }
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout> | undefined;
     try {
-      return await ai.models.generateContent({
-        model: attempt.model,
-        contents: params.contents,
-        config: params.config,
-      });
+      return await Promise.race([
+        ai.models.generateContent({
+          model: attempt.model,
+          contents: params.contents,
+          config: { ...params.config, abortSignal: controller.signal },
+        }),
+        new Promise<never>((_, reject) => {
+          timer = setTimeout(() => {
+            controller.abort();
+            reject(new AttemptTimeoutError(`Gemini ${attempt.model} timed out after ${attemptTimeoutMs} ms`));
+          }, attemptTimeoutMs);
+        }),
+      ]);
     } catch (err) {
       lastErr = err;
-      if (isQuotaError(err)) {
+      if (isQuotaError(err) || err instanceof AttemptTimeoutError) {
         exhaustedModels.add(attempt.model);
         continue;
       }
       if (!isTransientError(err)) throw err;
+    } finally {
+      clearTimeout(timer);
     }
   }
   throw lastErr;
@@ -174,7 +192,7 @@ function formatGeminiError(err: unknown): { status: number; message: string } {
   if (raw.includes('RESOURCE_EXHAUSTED') || raw.includes('429')) {
     return { status: 429, message: 'Rate limit reached on Gemini API. Please retry shortly.' };
   }
-  if (isTransientError(err)) {
+  if (isTransientError(err) || err instanceof AttemptTimeoutError) {
     return { status: 503, message: 'Gemini AI is experiencing a temporary traffic spike. Please retry.' };
   }
   return { status: 502, message: `AI service error: ${raw.slice(0, 140)}` };

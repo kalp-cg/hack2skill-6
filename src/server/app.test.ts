@@ -125,3 +125,19 @@ test('Gemini calls fall back to the second model when the primary model is out o
   assert.equal(calls.length, 2, 'quota error must not be retried on the same model');
   assert.notEqual(calls[1], calls[0]);
 });
+
+test('a stalled Gemini request times out and moves to the fallback model', async () => {
+  const calls: string[] = [];
+  const fakeAi = {
+    models: {
+      generateContent: ({ model }: { model: string }) => {
+        calls.push(model);
+        return calls.length === 1 ? new Promise(() => {}) : Promise.resolve({ text: 'fallback ok' });
+      },
+    },
+  } as unknown as Parameters<typeof generateContentWithResilience>[0];
+  const res = await generateContentWithResilience(fakeAi, { contents: 'hi' }, 50);
+  assert.equal(res.text, 'fallback ok');
+  assert.equal(calls.length, 2, 'a timed-out model must not be retried');
+  assert.notEqual(calls[1], calls[0]);
+});
