@@ -1,6 +1,8 @@
 # SaansSaathi (Breath Companion) — GenAI Urban Air Quality Assistant
 
 > **Chosen Vertical**: **Challenge 6 — Urban Air Quality Assistant**
+>
+> **Live demo**: https://hack2skill-6.vercel.app
 > A mobile-first, installable Progressive Web App (PWA) and GenAI + Deterministic + RAG assistant built to help Indian families, daily commuters, schools, and RWAs navigate severe winter smog with personalized low-emission routines, indoor air quality hacks, sustainable alternatives, and transparent direct impact math.
 
 ---
@@ -119,7 +121,7 @@ Most air-quality apps show a static AQI number, while naive LLM wrappers risk ha
     - *HTTP API (10, fully offline)*: security headers, input validation, 32 KB body cap, malformed-JSON handling, oversized situation rejection, missing-key 503, bounded leaderboard, and a regression test proving a spoofed `X-Forwarded-For` cannot bypass the rate limiter.
   - **15-scenario evaluation harness** checking Schema, Safety Guardrails, Numeric Consistency and RAG Grounding across 15 diverse Indian household personas:
     - `npm run eval` — runs the checks on the deterministic engine plan (offline, CI-safe).
-    - `npm run eval -- --live` — runs the **same checks on real Gemini-generated plans** (requires `GEMINI_API_KEY`).
+    - `npm run eval -- --live` — runs the **same checks on real Gemini-generated plans** (requires `GEMINI_API_KEY`). Latest live run: **15 / 15 passed**.
   - The Gemini response schema itself enforces exactly 5 plan blocks and exactly 3 top actions.
 - **Accessibility**:
   - Automated axe-core WCAG 2 A/AA audit of every tab: 0 violations.
