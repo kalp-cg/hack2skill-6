@@ -65,7 +65,7 @@ Most air-quality apps show a static AQI number, while naive LLM wrappers risk ha
                                      |
                                      v
 +-------------------------------------------------------------------------+
-| 5. GENAI ORCHESTRATION & GUARDRAILS (server.ts — @google/genai)         |
+| 5. GENAI ORCHESTRATION & GUARDRAILS (src/server/assistant.ts, gemini.ts)|
 |    - POST /api/plan: Strict JSON Schema (5 period blocks + citations)   |
 |    - POST /api/chat: Multilingual EN/HI/GU grounded chat + voice I/O    |
 |    - Medical red-flag escalation (wheezing/chest pain -> see doctor)    |
@@ -102,7 +102,32 @@ Most air-quality apps show a static AQI number, while naive LLM wrappers risk ha
 
 ## 5. Engineering Standards (Security, Efficiency, Testing & Accessibility)
 
-- **Code Quality**: Strict TypeScript (`tsc --noEmit` with 0 errors), clean separation between pure deterministic domain logic (`src/utils/saansEngine.ts`), the Express API (`src/server/app.ts` — a `createApp()` factory shared by the local server, Vercel function and tests), security/caching/RAG helpers (`src/server/*`), and modular React components (`src/components/saans/*`).
+- **Code Quality**:
+  - TypeScript `strict` with `noUnusedLocals`/`noUnusedParameters`, and [Biome](https://biomejs.dev) lint + format (recommended rules, React hooks, a11y, import sorting): `npm run lint` reports **0 findings**. The handful of intentional exceptions carry a `biome-ignore` with the reason.
+  - GitHub Actions CI (`.github/workflows/ci.yml`) runs lint, tests, the evaluation and the production build on every push.
+  - Small, single-purpose modules (largest file 445 lines); see the project structure below. Domain logic is pure and framework-free; HTTP, AI and UI layers depend on it, never the reverse.
+
+  ```text
+  src/
+  ├── utils/saansEngine.ts        Public entry point of the deterministic engine
+  │   └── engine/                 aqi · forecast · risk · exposure · plan (named, documented constants)
+  ├── server/
+  │   ├── app.ts                  createApp(): middleware + routers (shared by server.ts, api/index.ts, tests)
+  │   ├── routes/                 location · airQuality · assistant · community (HTTP only)
+  │   ├── assistant.ts            Plan + chat services: RAG → prompts → Gemini
+  │   ├── gemini.ts / prompts.ts  Retry/fallback/timeout policy · prompt builders + response schema
+  │   ├── openMeteo.ts            Pure upstream → telemetry conversion
+  │   ├── communityStore.ts       Bounded in-memory store
+  │   └── config.ts · http.ts · security.ts · cache.ts · rag.ts
+  ├── lib/                        Typed API client · localStorage helpers
+  ├── hooks/                      useLiveAir · useAiPlan · useAssistantChat · useCommunities · useActionFeedback · usePersistentState
+  ├── components/
+  │   ├── layout/                 AppHeader · BottomNav
+  │   ├── ui/ModalShell.tsx       One accessible modal frame for every dialog
+  │   └── saans/                  Feature views (Today, Plan, Impact, Ask, Community, onboarding/)
+  └── data/ · types/              Static content, seed data, shared types
+  api/index.ts                    Vercel serverless entry · server.ts: local dev/prod server
+  ```
 - **Security**:
   - Server-side Gemini API proxy (`src/server/app.ts`) — API keys never enter browser bundles or UI.
   - Defense-in-depth HTTP headers (`X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`, `X-Powered-By` disabled).
@@ -114,10 +139,11 @@ Most air-quality apps show a static AQI number, while naive LLM wrappers risk ha
   - Bounded `O(1)` TTL + LRU in-memory caches (`src/server/cache.ts`) for `/api/aqi` (10 min per grid cell) and `/api/geocode` (30 min), plus module-cached RAG chunks.
   - Offline-first PWA (`vite-plugin-pwa` Workbox caching + `localStorage` cache of last telemetry and plan) built for 3G networks.
   - Code-split bundle: secondary tabs load on demand via `React.lazy`, and React / charting libraries ship as long-lived vendor chunks (app code ≈ 28 KB gzip).
-  - Lean repository footprint (≈ 2.3 MB excluding `node_modules`).
+  - Lean repository footprint (≈ 0.8 MB tracked, including the lockfile); illustrative photos are 1200 px WebP (~87 KB total).
 - **Testing & Automated Evaluation**:
-  - **27 / 27 automated tests passing** (`npm test`):
+  - **37 / 37 automated tests passing** (`npm test`, runs every `src/**/*.test.ts`):
     - *Engine & helpers (15)*: CPCB breakpoints, inversion detection, CADR sizing, commute savings, What-If exposure math, adaptive plan swaps, coordinate/text validation, sliding-window rate limiter, TTL LRU cache eviction, RAG citation accuracy.
+    - *Server modules (10)*: Open-Meteo conversion (incl. missing data), community store (seed isolation, ranking, caps), prompt builders (language fallback, feedback adaptation, data-only framing), situation size cap, input clamping and sanitizing.
     - *HTTP API (12, fully offline)*: Gemini quota and stalled-request fallback to a second model, security headers, input validation, 32 KB body cap, malformed-JSON handling, oversized situation rejection, missing-key 503, bounded leaderboard, and a regression test proving a spoofed `X-Forwarded-For` cannot bypass the rate limiter.
   - **15-scenario evaluation harness** checking Schema, Safety Guardrails, Numeric Consistency and RAG Grounding across 15 diverse Indian household personas:
     - `npm run eval` — runs the checks on the deterministic engine plan (offline, CI-safe).
@@ -141,10 +167,11 @@ cp .env.example .env
 # 3. Start full-stack dev server (http://localhost:3000)
 npm run dev
 
-# 4. Run tests, 15-scenario eval harness, type check, and production build
+# 4. Run tests, 15-scenario eval harness, type check + lint, and production build
 npm test
 npm run eval            # add `-- --live` to evaluate real Gemini plans
-npm run lint
+npm run lint            # tsc --noEmit (strict) + biome check
+npm run format          # apply Biome formatting and safe fixes
 npm run build
 ```
 
