@@ -69,7 +69,7 @@ Most air-quality apps show a static AQI number, while naive LLM wrappers risk ha
 |    - POST /api/plan: Strict JSON Schema (5 period blocks + citations)   |
 |    - POST /api/chat: Multilingual EN/HI/GU grounded chat + voice I/O    |
 |    - Medical red-flag escalation (wheezing/chest pain -> see doctor)    |
-|    - Automatic retry + resilient fallback on transient upstream 503     |
+|    - Retry on transient 5xx; per-model quota (429) -> fallback model    |
 +-------------------------------------------------------------------------+
 ```
 
@@ -116,9 +116,9 @@ Most air-quality apps show a static AQI number, while naive LLM wrappers risk ha
   - Code-split bundle: secondary tabs load on demand via `React.lazy`, and React / charting libraries ship as long-lived vendor chunks (app code ≈ 28 KB gzip).
   - Lean repository footprint (≈ 2.3 MB excluding `node_modules`).
 - **Testing & Automated Evaluation**:
-  - **25 / 25 automated tests passing** (`npm test`):
+  - **26 / 26 automated tests passing** (`npm test`):
     - *Engine & helpers (15)*: CPCB breakpoints, inversion detection, CADR sizing, commute savings, What-If exposure math, adaptive plan swaps, coordinate/text validation, sliding-window rate limiter, TTL LRU cache eviction, RAG citation accuracy.
-    - *HTTP API (10, fully offline)*: security headers, input validation, 32 KB body cap, malformed-JSON handling, oversized situation rejection, missing-key 503, bounded leaderboard, and a regression test proving a spoofed `X-Forwarded-For` cannot bypass the rate limiter.
+    - *HTTP API (11, fully offline)*: Gemini quota fallback to a second model, security headers, input validation, 32 KB body cap, malformed-JSON handling, oversized situation rejection, missing-key 503, bounded leaderboard, and a regression test proving a spoofed `X-Forwarded-For` cannot bypass the rate limiter.
   - **15-scenario evaluation harness** checking Schema, Safety Guardrails, Numeric Consistency and RAG Grounding across 15 diverse Indian household personas:
     - `npm run eval` — runs the checks on the deterministic engine plan (offline, CI-safe).
     - `npm run eval -- --live` — runs the **same checks on real Gemini-generated plans** (requires `GEMINI_API_KEY`). Latest live run: **15 / 15 passed**.

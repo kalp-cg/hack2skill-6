@@ -2,7 +2,7 @@ import test, { after, before } from 'node:test';
 import assert from 'node:assert/strict';
 import type { AddressInfo } from 'node:net';
 import type { Server } from 'node:http';
-import { createApp } from './app.ts';
+import { createApp, generateContentWithResilience } from './app.ts';
 
 // Route tests run fully offline: every case below is answered before any upstream call.
 delete process.env.GEMINI_API_KEY;
@@ -107,4 +107,21 @@ test('rate limiter cannot be bypassed with a spoofed X-Forwarded-For header', as
   const spoofed = await postJson('/api/chat', { message: '' }, { 'X-Forwarded-For': '203.0.113.7' });
   assert.equal(spoofed.status, 429);
   assert.ok(Number(spoofed.headers.get('retry-after')) >= 1);
+});
+
+test('Gemini calls fall back to the second model when the primary model is out of quota', async () => {
+  const calls: string[] = [];
+  const fakeAi = {
+    models: {
+      generateContent: async ({ model }: { model: string }) => {
+        calls.push(model);
+        if (calls.length === 1) throw new Error('got status: 429 RESOURCE_EXHAUSTED');
+        return { text: 'ok' };
+      },
+    },
+  } as unknown as Parameters<typeof generateContentWithResilience>[0];
+  const res = await generateContentWithResilience(fakeAi, { contents: 'hi' });
+  assert.equal(res.text, 'ok');
+  assert.equal(calls.length, 2, 'quota error must not be retried on the same model');
+  assert.notEqual(calls[1], calls[0]);
 });

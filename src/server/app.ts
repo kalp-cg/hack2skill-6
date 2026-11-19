@@ -118,8 +118,17 @@ function isTransientError(err: unknown): boolean {
   );
 }
 
-async function generateContentWithResilience(
-  ai: GoogleGenAI,
+function isQuotaError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED');
+}
+
+/**
+ * Retries transient failures, and on a per-model quota error moves straight to the fallback
+ * model (quotas are tracked per model, so it usually still has headroom).
+ */
+export async function generateContentWithResilience(
+  ai: Pick<GoogleGenAI, 'models'>,
   params: {
     contents: string;
     config?: Record<string, unknown>;
@@ -132,7 +141,9 @@ async function generateContentWithResilience(
   ];
 
   let lastErr: unknown;
+  const exhaustedModels = new Set<string>();
   for (const attempt of attempts) {
+    if (exhaustedModels.has(attempt.model)) continue;
     if (attempt.delayMs > 0) {
       await new Promise((r) => setTimeout(r, attempt.delayMs));
     }
@@ -144,6 +155,10 @@ async function generateContentWithResilience(
       });
     } catch (err) {
       lastErr = err;
+      if (isQuotaError(err)) {
+        exhaustedModels.add(attempt.model);
+        continue;
+      }
       if (!isTransientError(err)) throw err;
     }
   }
