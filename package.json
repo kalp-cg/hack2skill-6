@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit && biome check .",
     "format": "biome check --write .",
-    "test": "tsx --test src/utils/saansEngine.test.ts src/server/securityAndRag.test.ts src/server/app.test.ts",
+    "test": "tsx --test \"src/**/*.test.ts\"",
     "eval": "tsx scripts/eval.ts",
     "clean": "rm -rf dist dev-dist .vercel"
   },

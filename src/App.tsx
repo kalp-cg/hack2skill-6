@@ -10,13 +10,9 @@ import { ActionBottomSheet } from './components/saans/ActionBottomSheet';
 import { OfflineBanner, PWAInstallButton } from './components/saans/PwaControls';
 import { SplashOnboarding } from './components/saans/SplashOnboarding';
 import { TodayTab } from './components/saans/TodayTab';
+import { SEED_COMMUNITIES } from './data/communities';
 import { UI_COPY } from './data/i18n';
-import {
-  DEFAULT_SAANS_PROFILE,
-  getDemoDelhiSevereSnapshot,
-  getFallbackAirSnapshot,
-  SEED_COMMUNITIES,
-} from './data/saansData';
+import { DEFAULT_SAANS_PROFILE, getDemoDelhiSevereSnapshot, getFallbackAirSnapshot } from './data/saansData';
 import type {
   ActionFeedbackState,
   AirSnapshot,

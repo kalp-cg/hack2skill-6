@@ -17,7 +17,7 @@ import {
   getFallbackAirSnapshot,
   INDIAN_CITIES,
 } from '../src/data/saansData';
-import { generateAiPlan } from '../src/server/app';
+import { generateAiPlan } from '../src/server/assistant';
 import { retrieveKnowledge } from '../src/server/rag';
 import type { AirSnapshot, AppLanguage, DailyPlanData, SaansProfile } from '../src/types/saans';
 import { buildDeterministicDailyPlan, buildSituationObject, calculateCpcbAqi } from '../src/utils/saansEngine';

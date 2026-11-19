@@ -15,6 +15,18 @@ export function sanitizeUserText(raw: unknown, maxLength = 800): string {
   return str.length > maxLength ? str.slice(0, maxLength) : str;
 }
 
+/** Sanitized short display label (names, cities) with HTML angle brackets removed. */
+export function sanitizeLabel(raw: unknown, fallback: string, maxLength = 40): string {
+  const cleaned = sanitizeUserText(raw, maxLength).replace(/[<>]/g, '');
+  return cleaned || fallback;
+}
+
+/** Coerces untrusted input to an integer within [min, max], using `fallback` when it is not a number. */
+export function clampInt(raw: unknown, fallback: number, min: number, max: number): number {
+  const value = Number(raw ?? fallback);
+  return Math.max(min, Math.min(max, Math.round(Number.isFinite(value) ? value : fallback)));
+}
+
 /**
  * Validates geographic latitude (-90..90) and longitude (-180..180).
  */
