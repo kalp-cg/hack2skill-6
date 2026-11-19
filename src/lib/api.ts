@@ -12,6 +12,17 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 const postJson = <T>(path: string, body: unknown) =>
   request<T>(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 
+export async function searchCities(query: string): Promise<CityInfo[]> {
+  const { results } = await request<{ results?: CityInfo[] }>(`/api/geocode?q=${encodeURIComponent(query)}`);
+  return results ?? [];
+}
+
+export async function reverseGeocode(lat: number, lon: number): Promise<CityInfo> {
+  const { city } = await request<{ city?: CityInfo }>(`/api/reverse-geocode?lat=${lat}&lon=${lon}`);
+  if (!city) throw new Error('Could not resolve your location.');
+  return city;
+}
+
 export async function fetchLiveAir(city: CityInfo): Promise<AirSnapshot> {
   const telemetry = await request<Omit<AirSnapshot, 'city'>>(`/api/aqi?lat=${city.lat}&lon=${city.lon}`);
   return { ...telemetry, city, source: 'open-meteo-live' };
