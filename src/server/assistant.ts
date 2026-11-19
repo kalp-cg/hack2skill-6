@@ -3,6 +3,7 @@ import { MAX_HISTORY_TURN_CHARS, MAX_HISTORY_TURNS, MAX_SITUATION_CHARS } from '
 import { generateContentWithResilience, getGeminiClient } from './gemini.js';
 import { buildChatPrompt, buildPlanPrompt, formatKnowledge, PLAN_RESPONSE_SCHEMA, SYSTEM_PROMPT } from './prompts.js';
 import { retrieveKnowledge } from './rag.js';
+import { parseAiPlan } from './schemas.js';
 import { sanitizeUserText } from './security.js';
 
 const uniqueSources = (chunks: { sourceName: string }[]) => Array.from(new Set(chunks.map((c) => c.sourceName)));
@@ -33,7 +34,7 @@ export async function generateAiPlan(situation: SituationObject): Promise<DailyP
     },
   });
 
-  const plan = JSON.parse((response.text ?? '{}').trim()) as DailyPlanData;
+  const plan = parseAiPlan((response.text ?? '{}').trim());
   return { ...plan, generatedAt: new Date().toISOString(), source: 'gemini-ai', ragSources: uniqueSources(chunks) };
 }
 

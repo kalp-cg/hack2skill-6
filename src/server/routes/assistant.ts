@@ -3,6 +3,7 @@ import { answerQuestion, generateAiPlan, serializeSituation } from '../assistant
 import { MAX_QUESTION_CHARS } from '../config.js';
 import { geminiErrorToHttp } from '../gemini.js';
 import { rateLimit } from '../http.js';
+import { ChatRequestSchema, PlanRequestSchema, parseSituation } from '../schemas.js';
 import { sanitizeUserText } from '../security.js';
 
 /** GenAI endpoints: the daily smog plan and the grounded multilingual chat. */
@@ -13,8 +14,9 @@ export function assistantRouter(): Router {
     '/plan',
     rateLimit('plan', 'Too many plan requests. Please wait a moment and retry.'),
     async (req, res) => {
-      const { situation } = req.body ?? {};
-      if (!situation?.profile || !situation?.air || serializeSituation(situation) === null) {
+      const body = PlanRequestSchema.safeParse(req.body);
+      const situation = body.success ? parseSituation(body.data.situation) : null;
+      if (!situation || serializeSituation(situation) === null) {
         res.status(400).json({ error: 'A valid SituationObject is required.' });
         return;
       }
@@ -31,7 +33,12 @@ export function assistantRouter(): Router {
     '/chat',
     rateLimit('chat', 'Too many chat requests. Please wait a moment and retry.'),
     async (req, res) => {
-      const { message, history, situation } = req.body ?? {};
+      const body = ChatRequestSchema.safeParse(req.body);
+      if (!body.success) {
+        res.status(400).json({ error: 'Please type or speak a question.' });
+        return;
+      }
+      const { message, history, situation } = body.data;
       const question = sanitizeUserText(message, MAX_QUESTION_CHARS);
       if (!question) {
         res.status(400).json({ error: 'Please type or speak a question.' });

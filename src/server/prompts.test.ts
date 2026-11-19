@@ -4,6 +4,7 @@ import { DEFAULT_SAANS_PROFILE, getDemoDelhiSevereSnapshot } from '../data/saans
 import { buildSituationObject } from '../utils/saansEngine.ts';
 import { serializeSituation } from './assistant.ts';
 import { buildChatPrompt, buildPlanPrompt, languageInstruction } from './prompts.ts';
+import { parseAiPlan } from './schemas.ts';
 import { clampInt, sanitizeLabel } from './security.ts';
 
 const situation = (skippedIds: string[] = []) =>
@@ -49,4 +50,12 @@ test('clampInt and sanitizeLabel coerce untrusted community inputs', () => {
   assert.equal(clampInt(undefined, 24, 12, 5000), 24);
   assert.equal(sanitizeLabel('<b>Block A</b>', 'x'), 'bBlock A/b');
   assert.equal(sanitizeLabel('   ', 'Your Household'), 'Your Household');
+});
+
+test('parseAiPlan accepts the deterministic plan shape and rejects malformed model output', async () => {
+  const { buildDeterministicDailyPlan } = await import('../utils/saansEngine.ts');
+  const { generatedAt: _g, source: _s, ragSources: _r, ...plan } = buildDeterministicDailyPlan(situation());
+  assert.equal(parseAiPlan(JSON.stringify(plan)).blocks.length, 5);
+  assert.throws(() => parseAiPlan(JSON.stringify({ ...plan, blocks: plan.blocks.slice(0, 4) })), /schema/);
+  assert.throws(() => parseAiPlan('{"oneLineSummary": "unterminated'), SyntaxError);
 });
