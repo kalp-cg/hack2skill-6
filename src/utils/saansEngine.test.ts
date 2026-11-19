@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { DEFAULT_SAANS_PROFILE, getDemoDelhiSevereSnapshot } from '../data/saansData';
+import type { SaansProfile } from '../types/saans';
 import {
   buildDeterministicDailyPlan,
   buildSituationObject,
@@ -100,4 +101,24 @@ test('findBestAndWorstHours48 spans both Today and Tomorrow', () => {
   const bw = findBestAndWorstHours48(demo.forecast48h);
   assert.ok(bw.bestAvgAqi < bw.worstAqi);
   assert.ok(bw.tomorrowBestAqi > 0);
+});
+
+test('calculateCpcbAqi interpolates readings that fall between published CPCB segments', () => {
+  // Regression: 30.05 sits between the 0–30 and 30.1–60 segments and used to return AQI 500.
+  assert.equal(calculateCpcbAqi(30.05), 51);
+  assert.equal(calculateCpcbAqi(60.05), 101);
+  assert.equal(calculateCpcbAqi(900), 500, 'readings beyond the scale cap at 500');
+});
+
+test('computeMemberRisks escalates sooner for respiratory and cardiac conditions', () => {
+  const kid = { name: 'Aarav', age: 6 };
+  const base: SaansProfile = { ...DEFAULT_SAANS_PROFILE, kids: [kid], elders: 1, conditions: [], hasPets: false };
+  const riskOf = (aqi: number, conditions: SaansProfile['conditions'], label: string) =>
+    computeMemberRisks(aqi, { ...base, conditions }).find((r) => r.memberLabel.startsWith(label))?.risk;
+
+  assert.equal(riskOf(250, [], 'Aarav'), 'High');
+  assert.equal(riskOf(250, ['asthma'], 'Aarav'), 'Critical', 'asthma lowers the child critical threshold');
+  assert.equal(riskOf(200, [], 'Elders'), 'High');
+  assert.equal(riskOf(200, ['heart'], 'Elders'), 'Critical', 'heart conditions lower the elder threshold');
+  assert.equal(riskOf(100, ['copd'], 'Sensitive Health'), 'Moderate', 'conditions never drop below Moderate');
 });

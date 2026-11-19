@@ -106,6 +106,107 @@ export function computeCommuteAlternatives(
   });
 }
 
+/** "How we calculated this" explainer, generated from the same constants the maths uses. */
+const FORMULA_EXPLAINERS: ImpactReport['formulas'] = [
+  {
+    name: '24-Hour Exposure & Dose Model',
+    formula: `Daily Inhaled PM2.5 (µg) = (Indoor PM2.5 × ${BREATHING_M3.indoor} m³) + (Commute PM2.5 × (1 − MaskEff) × ${BREATHING_M3.outdoor} m³)`,
+    assumption: `Assumes ${DAILY_BREATHING_M3} m³/day average breathing volume (20h indoor, 4h commute/outdoors). Fitted N95 filtration efficiency = ${N95_FILTRATION * 100}% real-world seal.`,
+  },
+  {
+    name: 'Cigarette-Equivalent (Approximation)',
+    formula: `Cigarettes/week ≈ (Daily Inhaled PM2.5 Avoided × 7) ÷ ${UG_INHALED_PER_CIGARETTE} µg`,
+    assumption:
+      'Based on Berkeley Earth rule of thumb: ~22 µg/m³ PM2.5 for 24 hours (330 µg inhaled) ≈ 1 cigarette. Explicitly an epidemiological approximation, not medical advice.',
+  },
+  {
+    name: 'CO₂ & Monthly INR Savings',
+    formula: 'Savings = RoundTripKm × CommuteDays/mo × (BaselineFactor − ChosenModeFactor)',
+    assumption:
+      'Uses Indian urban benchmarks: Petrol car ₹11.5/km & 175g CO₂/km; Metro ₹3.2/km & 28g CO₂/km; Carpool (3x) ₹4.0/km & 58g CO₂/km; Bus ₹2.2/km & 42g CO₂/km.',
+  },
+  {
+    name: 'Purifier CADR Room Sizing',
+    formula: `Required CADR (m³/h) = Room Area (sq ft) × ${CADR_M3H_PER_SQFT}`,
+    assumption:
+      'Targets 4.8–5 Air Changes per Hour (ACH) for a standard 8.5 ft Indian apartment ceiling during severe smog.',
+  },
+];
+
+/** Smog Score points: protective habits, low-emission transport and completed plan actions (max 100). */
+const SMOG_SCORE = {
+  purifierMax: 28,
+  maskMax: 24,
+  cleanCooking: 18,
+  recommendedCommute: 16,
+  otherCommute: 6,
+  perCompletedAction: 3.5,
+  completedActionsMax: 14,
+  floor: 12,
+};
+/** Monthly savings from switching to covered/electric cooking and sealing drafts. */
+const CLEAN_COOKING_SAVINGS = { co2Kg: 18, inr: 380 };
+/** Projected indoor PM2.5 never drops below this: no home is perfectly sealed. */
+const MIN_INDOOR_PM25 = 6;
+/** Exposure-cut percentages are capped to stay within what the evidence supports. */
+const MAX_EXPOSURE_CUT_PCT = 92;
+const TOP3_CUT_RANGE = { min: 25, max: 88, whenNoBaseline: 54 };
+/** "Three things" benchmark: ~12 h purifier (65% of max effect), N95 worn 90% of outdoor time. */
+const TOP3_PURIFIER_EFFECT = 0.65;
+const TOP3_MASK_COMPLIANCE = 0.9;
+
+const TREND_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Today'];
+/** Illustrative climb towards today's score (deterministic, so the chart is stable between renders). */
+const TREND_OFFSETS = [-18, -14, -10, -7, -4, -2, 0];
+
+/** PM2.5 inhaled over a day (µg) for given indoor and commute/outdoor concentrations. */
+function dailyDoseUg(indoorPm25: number, outdoorPm25: number): number {
+  return indoorPm25 * BREATHING_M3.indoor + outdoorPm25 * BREATHING_M3.outdoor;
+}
+
+function projectIndoorPm25(baselineIndoorPm25: number, whatIf: WhatIfInputs): number {
+  const purifierFactor = (Math.min(24, Math.max(0, whatIf.purifierHours)) / 24) * PURIFIER_MAX_REDUCTION;
+  const cookingSealFactor = whatIf.cleanCookingAndSeal ? CLEAN_COOKING_SEAL_REDUCTION : 0;
+  return Math.max(MIN_INDOOR_PM25, round1(baselineIndoorPm25 * (1 - purifierFactor) * (1 - cookingSealFactor)));
+}
+
+function smogScore(whatIf: WhatIfInputs, commuteRecommended: boolean, completedActions: number): number {
+  const points =
+    (whatIf.purifierHours / 24) * SMOG_SCORE.purifierMax +
+    (whatIf.maskCompliancePct / 100) * SMOG_SCORE.maskMax +
+    (whatIf.cleanCookingAndSeal ? SMOG_SCORE.cleanCooking : 0) +
+    (commuteRecommended ? SMOG_SCORE.recommendedCommute : SMOG_SCORE.otherCommute) +
+    Math.min(SMOG_SCORE.completedActionsMax, completedActions * SMOG_SCORE.perCompletedAction);
+  return Math.max(SMOG_SCORE.floor, Math.min(100, Math.round(points)));
+}
+
+function weeklyTrend(score: number, avgPm25Before: number): ImpactReport['weeklyTrend'] {
+  return TREND_DAYS.map((day, idx) => {
+    const dayScore = Math.max(18, Math.min(100, score + TREND_OFFSETS[idx]));
+    return {
+      day,
+      score: dayScore,
+      exposureUg: Math.max(12, Math.round(avgPm25Before * (1 - (dayScore / 100) * 0.68))),
+    };
+  });
+}
+
+/** Exposure cut if the household adopts the three headline habits (metro, purifier + clean cooking, N95). */
+function topThreeHabitsCutPct(baselineIndoorPm25: number, outdoorPm25: number, dailyBeforeUg: number): number {
+  if (dailyBeforeUg <= 0) return TOP3_CUT_RANGE.whenNoBaseline;
+  const indoorAfter = Math.max(
+    MIN_INDOOR_PM25,
+    baselineIndoorPm25 * (1 - PURIFIER_MAX_REDUCTION * TOP3_PURIFIER_EFFECT) * (1 - CLEAN_COOKING_SEAL_REDUCTION)
+  );
+  const outdoorAfter = outdoorPm25 * COMMUTE_BENCHMARKS.metro.pmFactor * (1 - N95_FILTRATION * TOP3_MASK_COMPLIANCE);
+  const cut = Math.round(((dailyBeforeUg - dailyDoseUg(indoorAfter, outdoorAfter)) / dailyBeforeUg) * 100);
+  return Math.min(TOP3_CUT_RANGE.max, Math.max(TOP3_CUT_RANGE.min, cut));
+}
+
+/**
+ * What-If simulator: projects the household's daily PM2.5 dose, Smog Score and monthly CO2/INR
+ * savings for the chosen commute, purifier hours, mask use and clean-cooking habits.
+ */
 export function computeWhatIfImpact(
   profile: SaansProfile,
   air: AirSnapshot,
@@ -113,14 +214,8 @@ export function computeWhatIfImpact(
   completedActionsCount: number
 ): ImpactReport {
   const baselineIndoorPm25 = estimateBaselineIndoorPm25(air.pm25, profile);
+  const projectedIndoorPm25 = projectIndoorPm25(baselineIndoorPm25, whatIf);
 
-  // Indoor reduction from purifier hours (0..24) + clean cooking/draft sealing
-  const purifierFactor = (Math.min(24, Math.max(0, whatIf.purifierHours)) / 24) * PURIFIER_MAX_REDUCTION;
-  const cookingSealFactor = whatIf.cleanCookingAndSeal ? CLEAN_COOKING_SEAL_REDUCTION : 0;
-  const remainingIndoor = (1 - purifierFactor) * (1 - cookingSealFactor);
-  const projectedIndoorPm25 = Math.max(6, Math.round(baselineIndoorPm25 * remainingIndoor * 10) / 10);
-
-  // Outdoor commute exposure factor with chosen mode + N95 mask compliance (N95 removes ~85% when fitted)
   const commuteOptions = computeCommuteAlternatives(
     profile.commuteDistanceKm,
     profile.commuteMode,
@@ -129,100 +224,35 @@ export function computeWhatIfImpact(
   );
   const currentCommute = commuteOptions.find((c) => c.mode === profile.commuteMode) ?? commuteOptions[0];
   const chosenCommute = commuteOptions.find((c) => c.mode === whatIf.commuteMode) ?? currentCommute;
-
   const maskEfficiency = (Math.min(100, Math.max(0, whatIf.maskCompliancePct)) / 100) * N95_FILTRATION;
-  const outdoorEffectiveBefore = currentCommute.commutePm25UgM3;
-  const outdoorEffectiveAfter = Math.round(chosenCommute.commutePm25UgM3 * (1 - maskEfficiency) * 10) / 10;
+  const outdoorAfter = round1(chosenCommute.commutePm25UgM3 * (1 - maskEfficiency));
 
-  const dailyBeforeUg = Math.round(
-    baselineIndoorPm25 * BREATHING_M3.indoor + outdoorEffectiveBefore * BREATHING_M3.outdoor
-  );
-  const dailyAfterUg = Math.round(
-    projectedIndoorPm25 * BREATHING_M3.indoor + outdoorEffectiveAfter * BREATHING_M3.outdoor
-  );
+  const dailyBeforeUg = Math.round(dailyDoseUg(baselineIndoorPm25, currentCommute.commutePm25UgM3));
+  const dailyAfterUg = Math.round(dailyDoseUg(projectedIndoorPm25, outdoorAfter));
   const dailyInhaledAvoidedUg = Math.max(0, dailyBeforeUg - dailyAfterUg);
+  const avgBefore = dailyBeforeUg / DAILY_BREATHING_M3;
+  const avgAfter = dailyAfterUg / DAILY_BREATHING_M3;
 
-  const avg24hBefore = dailyBeforeUg / DAILY_BREATHING_M3;
-  const avg24hAfter = dailyAfterUg / DAILY_BREATHING_M3;
-  const pm25AvoidedUgM3 = Math.max(0, Math.round((avg24hBefore - avg24hAfter) * 10) / 10);
-  const exposureCutPct =
-    dailyBeforeUg > 0 ? Math.min(92, Math.max(0, Math.round((dailyInhaledAvoidedUg / dailyBeforeUg) * 100))) : 0;
-
-  const cigarettesAvoidedPerWeekApprox = round1((dailyInhaledAvoidedUg * 7) / UG_INHALED_PER_CIGARETTE);
-
-  // Monthly CO2 & INR savings
-  const cookingCo2 = whatIf.cleanCookingAndSeal && profile.cookingFuel !== 'induction' ? 18 : 0;
-  const cookingInr = whatIf.cleanCookingAndSeal ? 380 : 0;
-  const monthlyCo2SavedKg = Math.round((chosenCommute.monthlyCo2SavedKg + cookingCo2) * 10) / 10;
-  const monthlyMoneySavedInr = Math.round(chosenCommute.monthlySavingsInr + cookingInr);
-
-  // Smog Score 0..100: rewards protective habits, completed actions, and low-emission transport
-  const habitPoints =
-    (whatIf.purifierHours / 24) * 28 +
-    (whatIf.maskCompliancePct / 100) * 24 +
-    (whatIf.cleanCookingAndSeal ? 18 : 0) +
-    (chosenCommute.recommended ? 16 : 6) +
-    Math.min(14, completedActionsCount * 3.5);
-  const smogScore = Math.max(12, Math.min(100, Math.round(habitPoints)));
-
-  // Deterministic 7-day trend anchored to current smogScore
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Today'];
-  const offsets = [-18, -14, -10, -7, -4, -2, 0];
-  const weeklyTrend = days.map((day, idx) => {
-    const s = Math.max(18, Math.min(100, smogScore + offsets[idx]));
-    const exp = Math.max(12, Math.round(avg24hBefore * (1 - (s / 100) * 0.68)));
-    return { day, score: s, exposureUg: exp };
-  });
-
-  // "If you do these 3 things" benchmark: metro/carpool, ~12 h purifier (65% of its max effect)
-  // with clean cooking & sealing, and an N95 worn 90% of the time outdoors.
-  const top3AfterIndoor = Math.max(
-    6,
-    baselineIndoorPm25 * (1 - PURIFIER_MAX_REDUCTION * 0.65) * (1 - CLEAN_COOKING_SEAL_REDUCTION)
-  );
-  const top3AfterOutdoor = air.pm25 * COMMUTE_BENCHMARKS.metro.pmFactor * (1 - N95_FILTRATION * 0.9);
-  const top3DailyAfter = top3AfterIndoor * BREATHING_M3.indoor + top3AfterOutdoor * BREATHING_M3.outdoor;
-  const top3CutPct =
-    dailyBeforeUg > 0
-      ? Math.min(88, Math.max(25, Math.round(((dailyBeforeUg - top3DailyAfter) / dailyBeforeUg) * 100)))
-      : 54;
+  const cookingCo2 =
+    whatIf.cleanCookingAndSeal && profile.cookingFuel !== 'induction' ? CLEAN_COOKING_SAVINGS.co2Kg : 0;
+  const cookingInr = whatIf.cleanCookingAndSeal ? CLEAN_COOKING_SAVINGS.inr : 0;
+  const score = smogScore(whatIf, chosenCommute.recommended, completedActionsCount);
 
   return {
-    smogScore,
-    weeklyTrend,
+    smogScore: score,
+    weeklyTrend: weeklyTrend(score, avgBefore),
     baselineIndoorPm25,
     projectedIndoorPm25,
-    exposureCutPct,
-    pm25AvoidedUgM3,
+    exposureCutPct:
+      dailyBeforeUg > 0
+        ? Math.min(MAX_EXPOSURE_CUT_PCT, Math.max(0, Math.round((dailyInhaledAvoidedUg / dailyBeforeUg) * 100)))
+        : 0,
+    pm25AvoidedUgM3: Math.max(0, round1(avgBefore - avgAfter)),
     dailyInhaledAvoidedUg,
-    cigarettesAvoidedPerWeekApprox,
-    monthlyCo2SavedKg,
-    monthlyMoneySavedInr,
-    top3CutPct,
-    formulas: [
-      {
-        name: '24-Hour Exposure & Dose Model',
-        formula: `Daily Inhaled PM2.5 (µg) = (Indoor PM2.5 × ${BREATHING_M3.indoor} m³) + (Commute PM2.5 × (1 − MaskEff) × ${BREATHING_M3.outdoor} m³)`,
-        assumption: `Assumes ${DAILY_BREATHING_M3} m³/day average breathing volume (20h indoor, 4h commute/outdoors). Fitted N95 filtration efficiency = ${N95_FILTRATION * 100}% real-world seal.`,
-      },
-      {
-        name: 'Cigarette-Equivalent (Approximation)',
-        formula: `Cigarettes/week ≈ (Daily Inhaled PM2.5 Avoided × 7) ÷ ${UG_INHALED_PER_CIGARETTE} µg`,
-        assumption:
-          'Based on Berkeley Earth rule of thumb: ~22 µg/m³ PM2.5 for 24 hours (330 µg inhaled) ≈ 1 cigarette. Explicitly an epidemiological approximation, not medical advice.',
-      },
-      {
-        name: 'CO₂ & Monthly INR Savings',
-        formula: 'Savings = RoundTripKm × CommuteDays/mo × (BaselineFactor − ChosenModeFactor)',
-        assumption:
-          'Uses Indian urban benchmarks: Petrol car ₹11.5/km & 175g CO₂/km; Metro ₹3.2/km & 28g CO₂/km; Carpool (3x) ₹4.0/km & 58g CO₂/km; Bus ₹2.2/km & 42g CO₂/km.',
-      },
-      {
-        name: 'Purifier CADR Room Sizing',
-        formula: `Required CADR (m³/h) = Room Area (sq ft) × ${CADR_M3H_PER_SQFT}`,
-        assumption:
-          'Targets 4.8–5 Air Changes per Hour (ACH) for a standard 8.5 ft Indian apartment ceiling during severe smog.',
-      },
-    ],
+    cigarettesAvoidedPerWeekApprox: round1((dailyInhaledAvoidedUg * 7) / UG_INHALED_PER_CIGARETTE),
+    monthlyCo2SavedKg: round1(chosenCommute.monthlyCo2SavedKg + cookingCo2),
+    monthlyMoneySavedInr: Math.round(chosenCommute.monthlySavingsInr + cookingInr),
+    top3CutPct: topThreeHabitsCutPct(baselineIndoorPm25, air.pm25, dailyBeforeUg),
+    formulas: FORMULA_EXPLAINERS,
   };
 }
