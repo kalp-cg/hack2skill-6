@@ -13,6 +13,7 @@ import type {
   PlanRecommendation,
   SaansProfile,
 } from '../../types/saans';
+import { layout, surface, text } from '../ui/styles';
 import { AqiRingGauge } from './AqiRingGauge';
 
 interface TodayTabProps {
@@ -102,7 +103,7 @@ export function TodayTab({
       )}
 
       {/* Human Greeting + Demo Scenario Switcher */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className={layout.headerRow}>
         <div>
           <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
             {air.city.name} ({air.city.area}) ·{' '}
@@ -112,9 +113,7 @@ export function TodayTab({
                 ? 'Live Open-Meteo Telemetry'
                 : 'Cached Offline Baseline'}
           </p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
-            {warmGreeting}
-          </h1>
+          <h1 className={`${text.pageTitle} sm:text-3xl`}>{warmGreeting}</h1>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -147,7 +146,7 @@ export function TodayTab({
 
       {/* Main Hero Grid: Left AQI Ring & AI Summary | Right Inversion & Best Outdoor Window */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 lg:col-span-7">
+        <section className={`${surface.panel} lg:col-span-7`}>
           <AqiRingGauge air={air} band={band} />
 
           {/* One-line AI Summary */}
@@ -183,7 +182,7 @@ export function TodayTab({
             </div>
 
             {/* Winter Inversion / Low Mixing-Height Warning */}
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-4">
+            <div className={surface.outline}>
               <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-slate-900 dark:text-white">{inversion.headline}</span>
                 <span
@@ -228,8 +227,8 @@ export function TodayTab({
       </div>
 
       {/* 48-Hour AQI Forecast Chart (Recharts) */}
-      <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+      <section className={surface.panel}>
+        <div className={layout.headerRowBottom}>
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">48-Hour AQI Forecast</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -290,8 +289,8 @@ export function TodayTab({
       </section>
 
       {/* Today's Smog Plan Preview + 5-Minute Win */}
-      <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <section className={surface.panel}>
+        <div className={layout.headerRow}>
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">{copy.todaysPlanTitle}</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">

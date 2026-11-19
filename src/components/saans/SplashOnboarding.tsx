@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import type { AppLanguage, SaansProfile } from '../../types/saans';
+import { surface } from '../ui/styles';
 import { GoalsStep } from './onboarding/GoalsStep';
 import { HomeStep } from './onboarding/HomeStep';
 import { HouseholdStep } from './onboarding/HouseholdStep';
@@ -58,7 +59,7 @@ export function SplashOnboarding({ language, initialProfile, onChangeLanguage, o
           />
         </div>
 
-        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8">
+        <div className={`${surface.panel} sm:p-8`}>
           <CurrentStep profile={profile} setProfile={setProfile} />
 
           <div className="mt-8 flex items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-800 pt-5">

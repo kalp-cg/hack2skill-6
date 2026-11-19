@@ -1,6 +1,7 @@
 import { Check, SkipForward, ThumbsDown, ThumbsUp, X } from 'lucide-react';
 import type { PlanRecommendation } from '../../types/saans';
 import { ModalShell } from '../ui/ModalShell';
+import { surface, text } from '../ui/styles';
 
 interface ActionBottomSheetProps {
   action: PlanRecommendation | null;
@@ -61,7 +62,7 @@ export function ActionBottomSheet({
 
       {/* Why */}
       <div className="mt-5 space-y-4">
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-4">
+        <div className={surface.inset}>
           <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">Why This Works</div>
           <p className="mt-1 text-sm leading-relaxed text-slate-800 dark:text-slate-200">{action.why}</p>
         </div>
@@ -72,29 +73,23 @@ export function ActionBottomSheet({
             Quantified Direct Impact (Engine-Computed)
           </div>
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-            <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-3">
+            <div className={surface.outlineCompact}>
               <div className="text-[11px] text-slate-500">PM2.5 Avoided</div>
               <div className="mt-0.5 font-mono text-base font-bold text-teal-800 dark:text-teal-400 tabular-nums">
                 -{action.impact.pm25_ug} µg/m³
               </div>
             </div>
-            <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-3">
+            <div className={surface.outlineCompact}>
               <div className="text-[11px] text-slate-500">CO₂ Saved</div>
-              <div className="mt-0.5 font-mono text-base font-bold text-slate-900 dark:text-white tabular-nums">
-                {action.impact.co2_kg} kg
-              </div>
+              <div className={text.metric}>{action.impact.co2_kg} kg</div>
             </div>
-            <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-3">
+            <div className={surface.outlineCompact}>
               <div className="text-[11px] text-slate-500">Money Saved</div>
-              <div className="mt-0.5 font-mono text-base font-bold text-slate-900 dark:text-white tabular-nums">
-                ₹{action.impact.inr}
-              </div>
+              <div className={text.metric}>₹{action.impact.inr}</div>
             </div>
-            <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-3">
+            <div className={surface.outlineCompact}>
               <div className="text-[11px] text-slate-500">Cig. Approx*</div>
-              <div className="mt-0.5 font-mono text-base font-bold text-slate-900 dark:text-white tabular-nums">
-                -{action.impact.cigarettes_approx}
-              </div>
+              <div className={text.metric}>-{action.impact.cigarettes_approx}</div>
             </div>
           </div>
           <p className="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400">

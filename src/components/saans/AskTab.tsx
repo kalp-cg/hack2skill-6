@@ -2,6 +2,7 @@ import { AlertCircle, Mic, MicOff, Send, Volume2, VolumeX } from 'lucide-react';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { LANG_LABELS, UI_COPY } from '../../data/i18n';
 import type { AppLanguage, ChatTurn, SituationObject } from '../../types/saans';
+import { layout, text } from '../ui/styles';
 
 interface AskTabProps {
   language: AppLanguage;
@@ -134,14 +135,12 @@ export function AskTab({ language, situation, messages, onChangeLanguage, onSend
     <div className="flex flex-col gap-5">
       {/* Header & Language Switcher */}
       <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className={layout.headerRow}>
           <div>
             <p className="text-xs font-medium text-teal-800 dark:text-teal-400">
               Grounded in {situation.air.city} AQI {situation.air.aqi} · CPCB / WHO / ICMR RAG
             </p>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-              Ask SaansSaathi (Chat + Voice)
-            </h1>
+            <h1 className={text.pageTitle}>Ask SaansSaathi (Chat + Voice)</h1>
           </div>
 
           <fieldset

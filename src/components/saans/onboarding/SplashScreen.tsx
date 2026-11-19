@@ -1,6 +1,7 @@
 import { ChevronRight, Flame } from 'lucide-react';
 import { LANG_LABELS, UI_COPY } from '../../../data/i18n';
 import type { AppLanguage } from '../../../types/saans';
+import { surface } from '../../ui/styles';
 
 interface SplashScreenProps {
   language: AppLanguage;
@@ -43,7 +44,7 @@ export function SplashScreen({ language, onChangeLanguage, onStartSetup, onTryDe
       </div>
 
       <main className="mx-auto my-auto w-full max-w-2xl py-10">
-        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-10">
+        <div className={`${surface.panel} sm:p-10`}>
           <p className="text-xs font-semibold text-teal-700 dark:text-teal-400">SaansSaathi · {copy.tagline}</p>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
             Breathe safer through winter smog—together.

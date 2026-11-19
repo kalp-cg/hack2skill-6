@@ -11,6 +11,7 @@ import type {
   SaansProfile,
 } from '../../types/saans';
 import { computeRoomCadr } from '../../utils/saansEngine';
+import { layout, surface, text } from '../ui/styles';
 
 interface PlanTabProps {
   profile: SaansProfile;
@@ -57,15 +58,13 @@ export function PlanTab({
   return (
     <div className="space-y-8">
       {/* Section 1: Today's AI Daily Smog Plan */}
-      <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <section className={surface.panel}>
+        <div className={layout.headerRow}>
           <div>
             <p className="text-xs font-medium text-teal-800 dark:text-teal-400">
               Morning · Commute · Afternoon · Evening · Night
             </p>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-              Today’s Personalized Smog Plan
-            </h1>
+            <h1 className={text.pageTitle}>Today’s Personalized Smog Plan</h1>
             <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
               Tailored for {air.city.name} (AQI {air.aqi}) · {profile.commuteDistanceKm} km {profile.commuteMode} ·{' '}
               {profile.cookingFuel.toUpperCase()} kitchen
@@ -202,7 +201,7 @@ export function PlanTab({
       </section>
 
       {/* Section 2: Room-Wise Indoor Air Hacks Engine + CADR Sizing Calculator */}
-      <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
+      <section className={surface.panel}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-800 dark:text-teal-400">
@@ -297,7 +296,7 @@ export function PlanTab({
                   {hack.costLabel} · Cut ~{hack.pm25CutPct}% indoor PM2.5 · Effort: {hack.effort}
                 </div>
                 <h3 className="mt-1.5 text-base font-bold text-slate-900 dark:text-white">{hack.title}</h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">{hack.summary}</p>
+                <p className={text.note}>{hack.summary}</p>
 
                 {hack.mythBuster && (
                   <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50/80 dark:bg-amber-950/40 p-3 text-xs text-amber-950 dark:text-amber-200">
@@ -325,8 +324,8 @@ export function PlanTab({
       </section>
 
       {/* Section 3: Sustainable Alternatives Recommender */}
-      <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+      <section className={surface.panel}>
+        <div className={layout.headerRowBottom}>
           <div>
             <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-800 dark:text-teal-400">
               <Route className="h-4 w-4" aria-hidden="true" />
@@ -408,32 +407,32 @@ export function PlanTab({
 
         {/* Clean Cooking, Heating & Zero-Burn Community Swaps */}
         <div className="mt-6 grid grid-cols-1 gap-4 border-t border-slate-200 dark:border-slate-800 pt-5 md:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-4">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-teal-800 dark:text-teal-400">
+          <div className={surface.outline}>
+            <div className={text.eyebrowTight}>
               <Leaf className="h-3.5 w-3.5" aria-hidden="true" />
               <span>Clean Kitchen Swap</span>
             </div>
-            <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+            <p className={text.note}>
               Shifting boiling, tea &amp; slow simmering from LPG/biomass to a ₹2,200 induction cooktop cuts indoor NO₂
               by ~55% and saves ~18 kg CO₂/month.
             </p>
           </div>
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-4">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-teal-800 dark:text-teal-400">
+          <div className={surface.outline}>
+            <div className={text.eyebrowTight}>
               <Leaf className="h-3.5 w-3.5" aria-hidden="true" />
               <span>Zero Open Waste-Burning</span>
             </div>
-            <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+            <p className={text.note}>
               Ask RWA security guards to replace night leaf/wood bonfires with electric oil heaters or thermal jackets—1
               bonfire spikes AQI across an entire lane.
             </p>
           </div>
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-4">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-teal-800 dark:text-teal-400">
+          <div className={surface.outline}>
+            <div className={text.eyebrowTight}>
               <Leaf className="h-3.5 w-3.5" aria-hidden="true" />
               <span>EV / CNG &amp; No-Idling</span>
             </div>
-            <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+            <p className={text.note}>
               Switching off car engines at red lights (&gt;20s) and school pickup queues cuts local roadside PM2.5
               spikes right at children’s breathing height.
             </p>

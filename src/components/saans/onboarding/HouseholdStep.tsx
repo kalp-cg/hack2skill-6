@@ -1,6 +1,7 @@
 import { Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import type { HealthCondition } from '../../../types/saans';
+import { surface } from '../../ui/styles';
 import { fieldInputClass, fieldLabelClass, type OnboardingStepProps } from './types';
 
 const CONDITIONS: Array<[HealthCondition, string]> = [
@@ -84,7 +85,7 @@ export function HouseholdStep({ profile, setProfile }: OnboardingStepProps) {
       </div>
 
       {/* Kids list */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-4 space-y-3">
+      <div className={`${surface.outline} space-y-3`}>
         <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">
           Children in Household (Optional — personalizes school &amp; play safety)
         </div>

@@ -2,6 +2,7 @@ import { ChevronDown, ChevronUp, ShieldCheck, SlidersHorizontal } from 'lucide-r
 import { useState } from 'react';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import type { AirSnapshot, CommuteMode, ImpactReport, SaansProfile, WhatIfInputs } from '../../types/saans';
+import { layout, surface, text } from '../ui/styles';
 
 interface ImpactTabProps {
   profile: SaansProfile;
@@ -28,12 +29,12 @@ export function ImpactTab({ profile, air, whatIf, report, completedCount, onChan
     <div className="space-y-6">
       {/* Top Row: Smog Score + 7-Day Trend */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 lg:col-span-5 flex flex-col justify-between">
+        <section className={`${surface.panel} lg:col-span-5 flex flex-col justify-between`}>
           <div>
             <p className="text-xs font-semibold text-teal-800 dark:text-teal-400">
               Direct Impact Explainer · Why This Matters
             </p>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Your Smog Score</h1>
+            <h1 className={text.pageTitle}>Your Smog Score</h1>
             <div className="mt-4 flex items-baseline gap-3">
               <span className="font-mono text-6xl font-bold text-teal-800 dark:text-teal-400 tabular-nums">
                 {report.smogScore}
@@ -61,8 +62,8 @@ export function ImpactTab({ profile, air, whatIf, report, completedCount, onChan
         </section>
 
         {/* Weekly Trend Chart */}
-        <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 lg:col-span-7">
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <section className={`${surface.panel} lg:col-span-7`}>
+          <div className={layout.headerRowBottom}>
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">7-Day Smog Score Trend</h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -108,7 +109,7 @@ export function ImpactTab({ profile, air, whatIf, report, completedCount, onChan
 
       {/* 4 Quantified Direct Impact Metric Cards */}
       <section aria-label="Quantified personal impact metrics" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
+        <div className={surface.tile}>
           <div className="text-xs font-medium text-slate-500 dark:text-slate-400">Exposure Cut (24h Avg)</div>
           <div className="mt-1.5 font-mono text-3xl font-bold text-teal-800 dark:text-teal-400 tabular-nums">
             -{report.exposureCutPct}%
@@ -118,7 +119,7 @@ export function ImpactTab({ profile, air, whatIf, report, completedCount, onChan
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
+        <div className={surface.tile}>
           <div className="text-xs font-medium text-slate-500 dark:text-slate-400">Cigarette-Equivalent*</div>
           <div className="mt-1.5 font-mono text-3xl font-bold text-slate-900 dark:text-white tabular-nums">
             -{report.cigarettesAvoidedPerWeekApprox}
@@ -126,7 +127,7 @@ export function ImpactTab({ profile, air, whatIf, report, completedCount, onChan
           <div className="mt-1 text-xs text-slate-600 dark:text-slate-300">approx. cigarettes avoided / week</div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
+        <div className={surface.tile}>
           <div className="text-xs font-medium text-slate-500 dark:text-slate-400">CO₂ Emissions Saved</div>
           <div className="mt-1.5 font-mono text-3xl font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">
             {report.monthlyCo2SavedKg} kg
@@ -136,7 +137,7 @@ export function ImpactTab({ profile, air, whatIf, report, completedCount, onChan
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
+        <div className={surface.tile}>
           <div className="text-xs font-medium text-slate-500 dark:text-slate-400">Money Saved (INR)</div>
           <div className="mt-1.5 font-mono text-3xl font-bold text-slate-900 dark:text-white tabular-nums">
             ₹{report.monthlyMoneySavedInr.toLocaleString('en-IN')}
@@ -146,8 +147,8 @@ export function ImpactTab({ profile, air, whatIf, report, completedCount, onChan
       </section>
 
       {/* Interactive What-If Simulator */}
-      <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
-        <div className="flex items-center gap-2 text-xs font-semibold text-teal-800 dark:text-teal-400">
+      <section className={surface.panel}>
+        <div className={text.eyebrow}>
           <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
           <span>Interactive What-If Simulator</span>
         </div>
@@ -281,13 +282,10 @@ export function ImpactTab({ profile, air, whatIf, report, completedCount, onChan
         {showFormulas && (
           <div className="border-t border-slate-200 dark:border-slate-800 px-6 py-5 space-y-4">
             {report.formulas.map((f) => (
-              <div
-                key={f.name}
-                className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-4"
-              >
+              <div key={f.name} className={surface.inset}>
                 <div className="text-xs font-bold text-slate-900 dark:text-white">{f.name}</div>
                 <div className="mt-1 font-mono text-xs text-teal-800 dark:text-teal-400">{f.formula}</div>
-                <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">{f.assumption}</p>
+                <p className={text.note}>{f.assumption}</p>
               </div>
             ))}
             <p className="text-[11px] text-slate-500 dark:text-slate-400">

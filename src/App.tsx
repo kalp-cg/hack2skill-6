@@ -12,6 +12,7 @@ import { ActionBottomSheet } from './components/saans/ActionBottomSheet';
 import { OfflineBanner } from './components/saans/PwaControls';
 import { SplashOnboarding } from './components/saans/SplashOnboarding';
 import { TodayTab } from './components/saans/TodayTab';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { DEFAULT_SAANS_PROFILE, getDemoDelhiSevereSnapshot } from './data/saansData';
 import { useActionFeedback } from './hooks/useActionFeedback';
 import { useAiPlan } from './hooks/useAiPlan';
@@ -206,107 +207,109 @@ export default function App() {
           </div>
         )}
 
-        <Suspense
-          fallback={
-            <p role="status" className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
-              Loading…
-            </p>
-          }
-        >
-          {emergencyViewOpen ? (
-            <EmergencyModeView
-              air={air}
-              profile={profile}
-              bestWorstHours={bestWorstHours}
-              memberRisks={memberRisks}
-              onExitEmergencyView={() => setEmergencyViewOpen(false)}
-            />
-          ) : (
-            <>
-              {activeTab === 'today' && (
-                <TodayTab
-                  language={language}
-                  profile={profile}
-                  air={air}
-                  band={band}
-                  inversion={inversion}
-                  bestWorstHours={bestWorstHours}
-                  memberRisks={memberRisks}
-                  plan={activePlan}
-                  feedback={feedback}
-                  isGeneratingPlan={aiPlan.isGenerating}
-                  planError={aiPlan.error}
-                  isLoadingAir={liveAir.isLoading}
-                  demoSevereMode={demoSevereMode}
-                  onToggleDemoSevere={toggleDemo}
-                  onRefreshAir={() => void liveAir.refresh()}
-                  onGenerateAiPlan={() => void aiPlan.generate(situation)}
-                  onOpenEmergency={() => setEmergencyViewOpen(true)}
-                  onSelectAction={setSelectedAction}
-                  onOpenFullPlan={() => setActiveTab('plan')}
-                />
-              )}
-              {activeTab === 'plan' && (
-                <PlanTab
-                  profile={profile}
-                  air={air}
-                  plan={activePlan}
-                  feedback={feedback}
-                  commuteAlternatives={commuteAlternatives}
-                  isGeneratingPlan={aiPlan.isGenerating}
-                  planError={aiPlan.error}
-                  onGenerateAiPlan={() => void aiPlan.generate(situation)}
-                  onSelectAction={setSelectedAction}
-                />
-              )}
-              {activeTab === 'impact' && (
-                <ImpactTab
-                  profile={profile}
-                  air={air}
-                  whatIf={whatIf}
-                  report={impactReport}
-                  completedCount={feedback.doneIds.length}
-                  onChangeWhatIf={setWhatIf}
-                />
-              )}
-              {activeTab === 'ask' && (
-                <AskTab
-                  language={language}
-                  situation={situation}
-                  messages={chat.messages}
-                  onChangeLanguage={setLanguage}
-                  onSendMessage={(text) => chat.send(text, situation)}
-                  isSending={chat.isSending}
-                />
-              )}
-              {activeTab === 'community' && (
-                <CommunityTab
-                  profile={profile}
-                  air={air}
-                  report={impactReport}
-                  feedback={feedback}
-                  streakDays={streakDays}
-                  maskCompliancePct={whatIf.maskCompliancePct}
-                  communities={circles.communities}
-                  activeCommunityId={circles.activeId}
-                  onSelectCommunity={circles.setActiveId}
-                  onCreateCommunity={async (name, type) => {
-                    await circles.update(
-                      { action: 'create', name, type, city: air.city.name },
-                      { ...household, co2SavedKg: Math.max(12, household.monthlyCo2Kg) }
-                    );
-                  }}
-                  onJoinCommunity={async (id) => {
-                    await circles.update(
-                      { action: 'join', communityId: id },
-                      { ...household, co2SavedKg: Math.max(8, Math.round(household.monthlyCo2Kg / 2)) }
-                    );
-                  }}
-                />
-              )}
-            </>
-          )}
-        </Suspense>
+        <ErrorBoundary resetKey={emergencyViewOpen ? 'emergency' : activeTab}>
+          <Suspense
+            fallback={
+              <p role="status" className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+                Loading…
+              </p>
+            }
+          >
+            {emergencyViewOpen ? (
+              <EmergencyModeView
+                air={air}
+                profile={profile}
+                bestWorstHours={bestWorstHours}
+                memberRisks={memberRisks}
+                onExitEmergencyView={() => setEmergencyViewOpen(false)}
+              />
+            ) : (
+              <>
+                {activeTab === 'today' && (
+                  <TodayTab
+                    language={language}
+                    profile={profile}
+                    air={air}
+                    band={band}
+                    inversion={inversion}
+                    bestWorstHours={bestWorstHours}
+                    memberRisks={memberRisks}
+                    plan={activePlan}
+                    feedback={feedback}
+                    isGeneratingPlan={aiPlan.isGenerating}
+                    planError={aiPlan.error}
+                    isLoadingAir={liveAir.isLoading}
+                    demoSevereMode={demoSevereMode}
+                    onToggleDemoSevere={toggleDemo}
+                    onRefreshAir={() => void liveAir.refresh()}
+                    onGenerateAiPlan={() => void aiPlan.generate(situation)}
+                    onOpenEmergency={() => setEmergencyViewOpen(true)}
+                    onSelectAction={setSelectedAction}
+                    onOpenFullPlan={() => setActiveTab('plan')}
+                  />
+                )}
+                {activeTab === 'plan' && (
+                  <PlanTab
+                    profile={profile}
+                    air={air}
+                    plan={activePlan}
+                    feedback={feedback}
+                    commuteAlternatives={commuteAlternatives}
+                    isGeneratingPlan={aiPlan.isGenerating}
+                    planError={aiPlan.error}
+                    onGenerateAiPlan={() => void aiPlan.generate(situation)}
+                    onSelectAction={setSelectedAction}
+                  />
+                )}
+                {activeTab === 'impact' && (
+                  <ImpactTab
+                    profile={profile}
+                    air={air}
+                    whatIf={whatIf}
+                    report={impactReport}
+                    completedCount={feedback.doneIds.length}
+                    onChangeWhatIf={setWhatIf}
+                  />
+                )}
+                {activeTab === 'ask' && (
+                  <AskTab
+                    language={language}
+                    situation={situation}
+                    messages={chat.messages}
+                    onChangeLanguage={setLanguage}
+                    onSendMessage={(text) => chat.send(text, situation)}
+                    isSending={chat.isSending}
+                  />
+                )}
+                {activeTab === 'community' && (
+                  <CommunityTab
+                    profile={profile}
+                    air={air}
+                    report={impactReport}
+                    feedback={feedback}
+                    streakDays={streakDays}
+                    maskCompliancePct={whatIf.maskCompliancePct}
+                    communities={circles.communities}
+                    activeCommunityId={circles.activeId}
+                    onSelectCommunity={circles.setActiveId}
+                    onCreateCommunity={async (name, type) => {
+                      await circles.update(
+                        { action: 'create', name, type, city: air.city.name },
+                        { ...household, co2SavedKg: Math.max(12, household.monthlyCo2Kg) }
+                      );
+                    }}
+                    onJoinCommunity={async (id) => {
+                      await circles.update(
+                        { action: 'join', communityId: id },
+                        { ...household, co2SavedKg: Math.max(8, Math.round(household.monthlyCo2Kg / 2)) }
+                      );
+                    }}
+                  />
+                )}
+              </>
+            )}
+          </Suspense>
+        </ErrorBoundary>
       </main>
 
       <BottomNav navItems={navItems} activeTab={highlightedTab} onNavigate={navigate} />
@@ -327,29 +330,31 @@ export default function App() {
       />
 
       {modal && (
-        <Suspense fallback={null}>
-          <SettingsAboutModal
-            key={modal}
-            initialView={modal}
-            language={language}
-            profile={profile}
-            darkMode={darkMode}
-            largeText={largeText}
-            highContrast={highContrast}
-            demoSevereMode={demoSevereMode}
-            onClose={() => setModal(null)}
-            onChangeLanguage={setLanguage}
-            onUpdateProfile={(next) => {
-              setProfile(next);
-              aiPlan.reset();
-            }}
-            onToggleDarkMode={() => setDarkMode((on) => !on)}
-            onToggleLargeText={() => setLargeText((on) => !on)}
-            onToggleHighContrast={() => setHighContrast((on) => !on)}
-            onToggleDemoSevere={toggleDemo}
-            onRedoOnboarding={() => setProfile((current) => ({ ...current, completedOnboarding: false }))}
-          />
-        </Suspense>
+        <ErrorBoundary resetKey={modal}>
+          <Suspense fallback={null}>
+            <SettingsAboutModal
+              key={modal}
+              initialView={modal}
+              language={language}
+              profile={profile}
+              darkMode={darkMode}
+              largeText={largeText}
+              highContrast={highContrast}
+              demoSevereMode={demoSevereMode}
+              onClose={() => setModal(null)}
+              onChangeLanguage={setLanguage}
+              onUpdateProfile={(next) => {
+                setProfile(next);
+                aiPlan.reset();
+              }}
+              onToggleDarkMode={() => setDarkMode((on) => !on)}
+              onToggleLargeText={() => setLargeText((on) => !on)}
+              onToggleHighContrast={() => setHighContrast((on) => !on)}
+              onToggleDemoSevere={toggleDemo}
+              onRedoOnboarding={() => setProfile((current) => ({ ...current, completedOnboarding: false }))}
+            />
+          </Suspense>
+        </ErrorBoundary>
       )}
     </div>
   );

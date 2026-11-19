@@ -2,6 +2,7 @@ import { Award, Check, Download, Plus, Share2, Trophy, Users } from 'lucide-reac
 import { type FormEvent, useState } from 'react';
 import { BADGE_DEFINITIONS } from '../../data/saansData';
 import type { ActionFeedbackState, AirSnapshot, CommunityGroup, ImpactReport, SaansProfile } from '../../types/saans';
+import { surface, text } from '../ui/styles';
 
 interface CommunityTabProps {
   profile: SaansProfile;
@@ -163,14 +164,12 @@ export function CommunityTab({
     <div className="space-y-6">
       {/* Header + Streaks & Earned Badges */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 lg:col-span-7">
-          <div className="flex items-center gap-2 text-xs font-semibold text-teal-800 dark:text-teal-400">
+        <section className={`${surface.panel} lg:col-span-7`}>
+          <div className={text.eyebrow}>
             <Users className="h-4 w-4" aria-hidden="true" />
             <span>Community Mode · Family, RWA &amp; School Circles</span>
           </div>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            {activeGroup ? activeGroup.name : 'Community Clean-Air Dashboard'}
-          </h1>
+          <h1 className={text.pageTitle}>{activeGroup ? activeGroup.name : 'Community Clean-Air Dashboard'}</h1>
           {activeGroup && (
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               {activeGroup.city} · {activeGroup.type.toUpperCase()} · Invite Code:{' '}
@@ -183,19 +182,19 @@ export function CommunityTab({
           {/* Community Aggregated Anonymous Metrics */}
           {activeGroup && (
             <div className="mt-5 grid grid-cols-3 gap-3">
-              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-4">
+              <div className={surface.inset}>
                 <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Households</div>
                 <div className="mt-1 font-mono text-2xl font-bold text-slate-900 dark:text-white tabular-nums">
                   {activeGroup.membersCount}
                 </div>
               </div>
-              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-4">
+              <div className={surface.inset}>
                 <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">CO₂ Avoided</div>
                 <div className="mt-1 font-mono text-2xl font-bold text-teal-800 dark:text-teal-400 tabular-nums">
                   {activeGroup.totalCo2AvoidedKg.toLocaleString('en-IN')} kg
                 </div>
               </div>
-              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-4">
+              <div className={surface.inset}>
                 <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Avg Exposure Cut</div>
                 <div className="mt-1 font-mono text-2xl font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">
                   -{activeGroup.collectiveExposureCutPct}%
@@ -247,9 +246,9 @@ export function CommunityTab({
         </section>
 
         {/* Personal Streaks & Badges */}
-        <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 lg:col-span-5">
+        <section className={`${surface.panel} lg:col-span-5`}>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-semibold text-teal-800 dark:text-teal-400">
+            <div className={text.eyebrow}>
               <Award className="h-4 w-4" aria-hidden="true" />
               <span>Habits, Streaks &amp; Badges</span>
             </div>
@@ -291,8 +290,8 @@ export function CommunityTab({
       {/* Leaderboard + Switch / Create Group */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         {/* Leaderboard */}
-        <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 lg:col-span-7">
-          <div className="flex items-center gap-2 text-xs font-semibold text-teal-800 dark:text-teal-400">
+        <section className={`${surface.panel} lg:col-span-7`}>
+          <div className={text.eyebrow}>
             <Trophy className="h-4 w-4" aria-hidden="true" />
             <span>Weekly Challenge Leaderboard</span>
           </div>

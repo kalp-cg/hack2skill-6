@@ -1,5 +1,6 @@
 import { Droplets, Layers, Thermometer, Wind } from 'lucide-react';
 import type { AirSnapshot, AqiBand } from '../../types/saans';
+import { text } from '../ui/styles';
 
 interface AqiRingGaugeProps {
   air: AirSnapshot;
@@ -69,19 +70,19 @@ export function AqiRingGauge({ air, band }: AqiRingGaugeProps) {
         </div>
 
         <div className="grid grid-cols-2 gap-2.5 border-t border-slate-200 dark:border-slate-800 pt-3 sm:grid-cols-4 text-xs">
-          <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+          <div className={text.iconRow}>
             <Thermometer className="h-4 w-4 text-slate-400 shrink-0" aria-hidden="true" />
             <span className="font-mono tabular-nums">{air.tempC}°C</span>
           </div>
-          <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+          <div className={text.iconRow}>
             <Droplets className="h-4 w-4 text-slate-400 shrink-0" aria-hidden="true" />
             <span className="font-mono tabular-nums">{air.humidityPct}% RH</span>
           </div>
-          <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+          <div className={text.iconRow}>
             <Wind className="h-4 w-4 text-slate-400 shrink-0" aria-hidden="true" />
             <span className="font-mono tabular-nums">{air.windKmh} km/h</span>
           </div>
-          <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+          <div className={text.iconRow}>
             <Layers className="h-4 w-4 text-slate-400 shrink-0" aria-hidden="true" />
             <span className="font-mono tabular-nums">{air.mixingHeightM} m mix</span>
           </div>

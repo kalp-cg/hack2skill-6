@@ -4,6 +4,7 @@ import { LANG_LABELS } from '../../data/i18n';
 import { INDIAN_CITIES } from '../../data/saansData';
 import type { AppLanguage, SaansProfile } from '../../types/saans';
 import { ModalShell } from '../ui/ModalShell';
+import { surface } from '../ui/styles';
 import { PWAInstallButton } from './PwaControls';
 
 interface SettingsAboutModalProps {
@@ -294,7 +295,7 @@ export function SettingsAboutModal({
           </div>
 
           {/* Visible AI Architecture Diagram */}
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-4">
+          <div className={surface.inset}>
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 dark:text-white">
               <Cpu className="h-4 w-4 text-teal-700 dark:text-teal-400" />
               <span>Visible GenAI + Deterministic + RAG Architecture</span>
