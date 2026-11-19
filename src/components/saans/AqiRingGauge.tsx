@@ -1,5 +1,5 @@
-import { Thermometer, Droplets, Wind, Layers } from 'lucide-react';
-import { AirSnapshot, AqiBand } from '../../types/saans';
+import { Droplets, Layers, Thermometer, Wind } from 'lucide-react';
+import type { AirSnapshot, AqiBand } from '../../types/saans';
 
 interface AqiRingGaugeProps {
   air: AirSnapshot;
@@ -62,10 +62,7 @@ export function AqiRingGauge({ air, band }: AqiRingGaugeProps) {
             >
               <div className="text-xs font-medium text-slate-500 dark:text-slate-400">{p.label}</div>
               <div className="mt-1 font-mono text-lg font-semibold text-slate-900 dark:text-white tabular-nums">
-                {p.value}{' '}
-                <span className="text-[11px] font-normal text-slate-500 dark:text-slate-400">
-                  {p.unit}
-                </span>
+                {p.value} <span className="text-[11px] font-normal text-slate-500 dark:text-slate-400">{p.unit}</span>
               </div>
             </div>
           ))}

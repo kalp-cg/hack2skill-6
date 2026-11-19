@@ -1,18 +1,17 @@
-import express from 'express';
 import { GoogleGenAI, Type } from '@google/genai';
+import express from 'express';
+import type { CommunityGroup, ForecastHour, SituationObject } from '../types/saans.js';
+import { calculateCpcbAqi } from '../utils/saansEngine.js';
+import { TtlLruCache } from './cache.js';
 import { retrieveKnowledge } from './rag.js';
 import {
   applySecurityHeaders,
-  sanitizeUserText,
   SlidingWindowRateLimiter,
+  sanitizeUserText,
   validateCommunityName,
   validateCoordinates,
   validateGeocodeQuery,
 } from './security.js';
-import { TtlLruCache } from './cache.js';
-import { calculateCpcbAqi } from '../utils/saansEngine.js';
-import type { CommunityGroup, ForecastHour, SituationObject } from '../types/saans.js';
-
 
 const aqiCache = new TtlLruCache<Record<string, unknown>>({ maxEntries: 100, ttlMs: 10 * 60 * 1000 });
 const geocodeCache = new TtlLruCache<Array<Record<string, unknown>>>({ maxEntries: 100, ttlMs: 30 * 60 * 1000 });
@@ -239,9 +238,7 @@ export async function generateAiPlan(situation: SituationObject) {
   const ai = getGeminiClient();
   const ragQuery = `${situation.air.band} AQI ${situation.air.aqi} ${situation.profile.conditions?.join(' ') ?? ''} ${situation.profile.cookingFuel} ${situation.profile.commuteMode} CADR purifier mask inversion`;
   const ragChunks = retrieveKnowledge(ragQuery, 4);
-  const ragContext = ragChunks
-    .map((c) => `[SOURCE: ${c.sourceName} — ${c.heading}]\n${c.content}`)
-    .join('\n\n');
+  const ragContext = ragChunks.map((c) => `[SOURCE: ${c.sourceName} — ${c.heading}]\n${c.content}`).join('\n\n');
 
   const langName =
     situation.language === 'hi'
@@ -261,8 +258,8 @@ ${JSON.stringify(situation, null, 2)}
 Generate Today's Smog Plan with exactly 5 blocks in order: Morning, Commute, Afternoon, Evening, Night.
 ${
   situation.feedbackSummary?.skippedIds?.length > 0
-? `IMPORTANT FEEDBACK ADAPTATION: The user previously skipped or disliked action IDs: ${situation.feedbackSummary.skippedIds.join(', ')}. Offer an easier, lower-effort swap and explain briefly in adaptedNote.`
-: ''
+    ? `IMPORTANT FEEDBACK ADAPTATION: The user previously skipped or disliked action IDs: ${situation.feedbackSummary.skippedIds.join(', ')}. Offer an easier, lower-effort swap and explain briefly in adaptedNote.`
+    : ''
 }
 Keep impact numbers consistent with the situation object (pm25_ug <= current pm25, inr and co2_kg consistent with commuteAlternatives/engineEstimates).
 Include Berkeley Earth cigarette_approx = round(pm25_ug / 22, 1).`;
@@ -339,7 +336,6 @@ Include Berkeley Earth cigarette_approx = round(pm25_ug / 22, 1).`;
       },
     },
   });
-
 
   const parsed = JSON.parse((response.text ?? '{}').trim());
   return {
@@ -504,7 +500,7 @@ export function createApp(): express.Express {
         };
       };
 
-      const weather = wResp && wResp.ok
+      const weather = wResp?.ok
         ? ((await wResp.json()) as {
             current?: {
               temperature_2m?: number;
@@ -619,9 +615,7 @@ export function createApp(): express.Express {
     try {
       const ai = getGeminiClient();
       const ragChunks = retrieveKnowledge(trimmed, 3);
-      const ragContext = ragChunks
-        .map((c) => `[SOURCE: ${c.sourceName} — ${c.heading}]\n${c.content}`)
-        .join('\n\n');
+      const ragContext = ragChunks.map((c) => `[SOURCE: ${c.sourceName} — ${c.heading}]\n${c.content}`).join('\n\n');
 
       const langName =
         situation?.language === 'hi'
@@ -676,7 +670,8 @@ Instructions:
           situation?.air?.source === 'demo-delhi-severe'
             ? 'Demo: Delhi Winter Smog + CPCB/WHO KB'
             : `Open-Meteo Live AQI (${situation?.air?.city ?? 'Local'}) + CPCB/WHO KB`,
-        confidence: situation?.air?.source === 'open-meteo-live' ? 'High (Live Telemetry + RAG)' : 'High (Engine + RAG)',
+        confidence:
+          situation?.air?.source === 'open-meteo-live' ? 'High (Live Telemetry + RAG)' : 'High (Engine + RAG)',
         citations: Array.from(new Set(ragChunks.map((c) => c.sourceName))),
         timestamp: new Date().toISOString(),
       });

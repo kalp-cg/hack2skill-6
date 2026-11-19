@@ -1,12 +1,16 @@
 import type { NextFunction, Request, Response } from 'express';
 
+/** ASCII control characters except tab (\u0009), newline (\u000A) and carriage return (\u000D). */
+// biome-ignore lint/suspicious/noControlCharactersInRegex: matching control characters is the point — they are stripped.
+const CONTROL_CHARACTERS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
+
 /**
- * Strips ASCII control characters (except newline/tab) and trims user text
+ * Strips control characters and trims user text
  * to prevent log injection, malformed payloads, and prompt-stuffing bloat.
  */
 export function sanitizeUserText(raw: unknown, maxLength = 800): string {
   const str = String(raw ?? '')
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+    .replace(CONTROL_CHARACTERS, '')
     .trim();
   return str.length > maxLength ? str.slice(0, maxLength) : str;
 }
@@ -32,9 +36,7 @@ export function validateCoordinates(
 /**
  * Validates city/area search query strings for /api/geocode.
  */
-export function validateGeocodeQuery(
-  raw: unknown
-): { ok: true; query: string } | { ok: false; error: string } {
+export function validateGeocodeQuery(raw: unknown): { ok: true; query: string } | { ok: false; error: string } {
   const cleaned = sanitizeUserText(raw, 80).replace(/[<>`]/g, '');
   if (cleaned.length < 2) {
     return { ok: false, error: 'Enter at least 2 characters to search.' };
@@ -45,9 +47,7 @@ export function validateGeocodeQuery(
 /**
  * Validates and sanitizes community/RWA/school circle names (strips HTML angle brackets).
  */
-export function validateCommunityName(
-  raw: unknown
-): { ok: true; name: string } | { ok: false; error: string } {
+export function validateCommunityName(raw: unknown): { ok: true; name: string } | { ok: false; error: string } {
   const cleaned = sanitizeUserText(raw, 60).replace(/[<>]/g, '');
   if (cleaned.length < 3) {
     return { ok: false, error: 'Community name must be between 3 and 60 characters.' };

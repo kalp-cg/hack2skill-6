@@ -1,7 +1,7 @@
-import test, { after, before } from 'node:test';
 import assert from 'node:assert/strict';
-import type { AddressInfo } from 'node:net';
 import type { Server } from 'node:http';
+import type { AddressInfo } from 'node:net';
+import test, { after, before } from 'node:test';
 import { createApp, generateContentWithResilience } from './app.ts';
 
 // Route tests run fully offline: every case below is answered before any upstream call.

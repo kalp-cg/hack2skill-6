@@ -1,13 +1,7 @@
-import { FormEvent, useState } from 'react';
-import { Users, Award, Share2, Download, Plus, Check, Trophy } from 'lucide-react';
-import {
-  ActionFeedbackState,
-  AirSnapshot,
-  CommunityGroup,
-  ImpactReport,
-  SaansProfile,
-} from '../../types/saans';
+import { Award, Check, Download, Plus, Share2, Trophy, Users } from 'lucide-react';
+import { type FormEvent, useState } from 'react';
 import { BADGE_DEFINITIONS } from '../../data/saansData';
+import type { ActionFeedbackState, AirSnapshot, CommunityGroup, ImpactReport, SaansProfile } from '../../types/saans';
 
 interface CommunityTabProps {
   profile: SaansProfile;
@@ -42,8 +36,7 @@ export function CommunityTab({
   const [shareStatus, setShareStatus] = useState<string | null>(null);
   const [joinedIds, setJoinedIds] = useState<string[]>(['rwa-green-park']);
 
-  const activeGroup =
-    communities.find((c) => c.id === activeCommunityId) ?? communities[0];
+  const activeGroup = communities.find((c) => c.id === activeCommunityId) ?? communities[0];
 
   async function handleCreate(e: FormEvent) {
     e.preventDefault();
@@ -191,25 +184,19 @@ export function CommunityTab({
           {activeGroup && (
             <div className="mt-5 grid grid-cols-3 gap-3">
               <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-4">
-                <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                  Households
-                </div>
+                <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Households</div>
                 <div className="mt-1 font-mono text-2xl font-bold text-slate-900 dark:text-white tabular-nums">
                   {activeGroup.membersCount}
                 </div>
               </div>
               <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-4">
-                <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                  CO₂ Avoided
-                </div>
+                <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">CO₂ Avoided</div>
                 <div className="mt-1 font-mono text-2xl font-bold text-teal-800 dark:text-teal-400 tabular-nums">
                   {activeGroup.totalCo2AvoidedKg.toLocaleString('en-IN')} kg
                 </div>
               </div>
               <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-4">
-                <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                  Avg Exposure Cut
-                </div>
+                <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Avg Exposure Cut</div>
                 <div className="mt-1 font-mono text-2xl font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">
                   -{activeGroup.collectiveExposureCutPct}%
                 </div>
@@ -256,11 +243,7 @@ export function CommunityTab({
               <span>Copy WhatsApp Summary</span>
             </button>
           </div>
-          {shareStatus && (
-            <p className="mt-2.5 text-xs font-medium text-teal-800 dark:text-teal-400">
-              {shareStatus}
-            </p>
-          )}
+          {shareStatus && <p className="mt-2.5 text-xs font-medium text-teal-800 dark:text-teal-400">{shareStatus}</p>}
         </section>
 
         {/* Personal Streaks & Badges */}
@@ -288,18 +271,12 @@ export function CommunityTab({
                   }`}
                 >
                   <div>
-                    <div className="text-sm font-semibold text-slate-900 dark:text-white">
-                      {badge.title}
-                    </div>
-                    <div className="text-xs text-slate-600 dark:text-slate-400">
-                      {badge.criteria}
-                    </div>
+                    <div className="text-sm font-semibold text-slate-900 dark:text-white">{badge.title}</div>
+                    <div className="text-xs text-slate-600 dark:text-slate-400">{badge.criteria}</div>
                   </div>
                   <span
                     className={`font-mono text-xs font-semibold shrink-0 ${
-                      earned
-                        ? 'text-teal-800 dark:text-teal-400'
-                        : 'text-slate-500 dark:text-slate-400'
+                      earned ? 'text-teal-800 dark:text-teal-400' : 'text-slate-500 dark:text-slate-400'
                     }`}
                   >
                     {earned ? 'Earned' : 'Locked'}
@@ -325,18 +302,13 @@ export function CommunityTab({
 
           <div className="mt-4 divide-y divide-slate-100 dark:divide-slate-800">
             {(activeGroup?.leaderboard ?? []).map((member, idx) => (
-              <div
-                key={`${member.name}-${idx}`}
-                className="flex items-center justify-between gap-3 py-3 text-sm"
-              >
+              <div key={member.name} className="flex items-center justify-between gap-3 py-3 text-sm">
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 font-mono text-xs font-bold text-slate-700 dark:text-slate-200">
                     {idx + 1}
                   </span>
                   <div className="min-w-0">
-                    <div className="truncate font-semibold text-slate-900 dark:text-white">
-                      {member.name}
-                    </div>
+                    <div className="truncate font-semibold text-slate-900 dark:text-white">{member.name}</div>
                     <div className="font-mono text-xs text-slate-500 dark:text-slate-400 tabular-nums">
                       {member.actionsDone} actions · {member.co2SavedKg} kg CO₂ saved
                     </div>
@@ -374,9 +346,7 @@ export function CommunityTab({
                       onClick={() => onSelectCommunity(group.id)}
                       className="flex-1 text-left cursor-pointer min-w-0"
                     >
-                      <div className="truncate text-xs font-bold text-slate-900 dark:text-white">
-                        {group.name}
-                      </div>
+                      <div className="truncate text-xs font-bold text-slate-900 dark:text-white">{group.name}</div>
                       <div className="text-[11px] text-slate-500 dark:text-slate-400">
                         {group.membersCount} homes · {group.totalCo2AvoidedKg} kg CO₂
                       </div>
@@ -402,13 +372,8 @@ export function CommunityTab({
             </div>
           </div>
 
-          <form
-            onSubmit={handleCreate}
-            className="border-t border-slate-200 dark:border-slate-800 pt-4 space-y-3"
-          >
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-              Create New Clean-Air Circle
-            </h3>
+          <form onSubmit={handleCreate} className="border-t border-slate-200 dark:border-slate-800 pt-4 space-y-3">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Create New Clean-Air Circle</h3>
             <label htmlFor="new-comm-name" className="sr-only">
               Community name
             </label>

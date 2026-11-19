@@ -1,7 +1,8 @@
+import { Download, Share, WifiOff, X } from 'lucide-react';
 import { useState } from 'react';
-import { Download, WifiOff, Share, X } from 'lucide-react';
-import { usePWAInstall } from '../../hooks/usePWAInstall';
 import { useOnlineStatus } from '../../hooks/useOnlineStatus';
+import { usePWAInstall } from '../../hooks/usePWAInstall';
+import { ModalShell } from '../ui/ModalShell';
 
 export function OfflineBanner() {
   const isOnline = useOnlineStatus();
@@ -14,9 +15,7 @@ export function OfflineBanner() {
     >
       <span className="inline-flex items-center gap-1.5">
         <WifiOff className="h-3.5 w-3.5" aria-hidden="true" />
-        <span>
-          You’re offline — showing your cached AQI telemetry &amp; last SaansSaathi daily plan.
-        </span>
+        <span>You’re offline — showing your cached AQI telemetry &amp; last SaansSaathi daily plan.</span>
       </span>
     </div>
   );
@@ -31,7 +30,8 @@ export function PWAInstallButton({ compact = false }: { compact?: boolean }) {
   if (!isInstallable && !isIOS) {
     return compact ? null : (
       <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-3 text-xs text-slate-600 dark:text-slate-300">
-        SaansSaathi is PWA-ready with offline plan caching. Use your browser menu (“Install app” or “Add to Home Screen”) to install.
+        SaansSaathi is PWA-ready with offline plan caching. Use your browser menu (“Install app” or “Add to Home
+        Screen”) to install.
       </div>
     );
   }
@@ -52,40 +52,34 @@ export function PWAInstallButton({ compact = false }: { compact?: boolean }) {
       </button>
 
       {showIOSGuide && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Install on iPhone or iPad"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          onClick={() => setShowIOSGuide(false)}
+        <ModalShell
+          variant="center"
+          onClose={() => setShowIOSGuide(false)}
+          labelledBy="ios-install-title"
+          panelClassName="w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xl"
         >
-          <div
-            className="w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                Install on iPhone / iPad
-              </h3>
-              <button
-                type="button"
-                aria-label="Close install instructions"
-                onClick={() => setShowIOSGuide(false)}
-                className="rounded-full p-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <ol className="mt-3 space-y-2 text-xs text-slate-600 dark:text-slate-300">
-              <li className="flex items-center gap-2">
-                <Share className="h-4 w-4 text-teal-700 shrink-0" />
-                <span>1. Tap the Share button in Safari’s bottom bar.</span>
-              </li>
-              <li>2. Scroll down and tap “Add to Home Screen”.</li>
-              <li>3. Tap “Add” to launch SaansSaathi offline anytime.</li>
-            </ol>
+          <div className="flex items-center justify-between">
+            <h3 id="ios-install-title" className="text-base font-bold text-slate-900 dark:text-white">
+              Install on iPhone / iPad
+            </h3>
+            <button
+              type="button"
+              aria-label="Close install instructions"
+              onClick={() => setShowIOSGuide(false)}
+              className="rounded-full p-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
-        </div>
+          <ol className="mt-3 space-y-2 text-xs text-slate-600 dark:text-slate-300">
+            <li className="flex items-center gap-2">
+              <Share className="h-4 w-4 text-teal-700 shrink-0" />
+              <span>1. Tap the Share button in Safari’s bottom bar.</span>
+            </li>
+            <li>2. Scroll down and tap “Add to Home Screen”.</li>
+            <li>3. Tap “Add” to launch SaansSaathi offline anytime.</li>
+          </ol>
+        </ModalShell>
       )}
     </>
   );

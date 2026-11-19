@@ -1,7 +1,7 @@
-import { FormEvent, useEffect, useRef, useState } from 'react';
-import { Mic, MicOff, Send, Volume2, VolumeX, AlertCircle } from 'lucide-react';
-import { AppLanguage, ChatTurn, SituationObject } from '../../types/saans';
+import { AlertCircle, Mic, MicOff, Send, Volume2, VolumeX } from 'lucide-react';
+import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { LANG_LABELS, UI_COPY } from '../../data/i18n';
+import type { AppLanguage, ChatTurn, SituationObject } from '../../types/saans';
 
 interface AskTabProps {
   language: AppLanguage;
@@ -24,11 +24,7 @@ const QUICK_PROMPTS: Record<AppLanguage, string[]> = {
     '120 sq ft कमरे के लिए कौन सा एयर प्यूरीफायर CADR चाहिए?',
     'क्या अभी बाहर जॉगिंग करना सुरक्षित है?',
   ],
-  gu: [
-    'શું મારું 6 વર્ષનું બાળક આજે શાળાએ જઈ શકે?',
-    '120 sq ft રૂમ માટે કેટલું CADR પ્યુરિફાયર જોઈએ?',
-    'શું અત્યારે બહાર દોડવું સુરક્ષિત છે?',
-  ],
+  gu: ['શું મારું 6 વર્ષનું બાળક આજે શાળાએ જઈ શકે?', '120 sq ft રૂમ માટે કેટલું CADR પ્યુરિફાયર જોઈએ?', 'શું અત્યારે બહાર દોડવું સુરક્ષિત છે?'],
 };
 
 interface MinimalSpeechRecognition {
@@ -42,14 +38,7 @@ interface MinimalSpeechRecognition {
   onend: (() => void) | null;
 }
 
-export function AskTab({
-  language,
-  situation,
-  messages,
-  onChangeLanguage,
-  onSendMessage,
-  isSending,
-}: AskTabProps) {
+export function AskTab({ language, situation, messages, onChangeLanguage, onSendMessage, isSending }: AskTabProps) {
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
@@ -59,6 +48,8 @@ export function AskTab({
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const copy = UI_COPY[language];
 
+  // Keep the newest message (or the typing indicator) in view.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: both values are scroll triggers, not inputs.
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length, isSending]);
@@ -153,10 +144,9 @@ export function AskTab({
             </h1>
           </div>
 
-          <div
-            role="group"
+          <fieldset
             aria-label="Assistant language"
-            className="flex items-center gap-1 rounded-xl bg-slate-100 dark:bg-slate-800 p-1 self-start"
+            className="min-w-0 flex items-center gap-1 rounded-xl bg-slate-100 dark:bg-slate-800 p-1 self-start"
           >
             {(['en', 'hi', 'gu'] as AppLanguage[]).map((code) => (
               <button
@@ -173,7 +163,7 @@ export function AskTab({
                 {LANG_LABELS[code]}
               </button>
             ))}
-          </div>
+          </fieldset>
         </div>
 
         {/* Quick Questions */}
@@ -198,10 +188,7 @@ export function AskTab({
           {messages.map((turn) => {
             const isUser = turn.role === 'user';
             return (
-              <div
-                key={turn.id}
-                className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}
-              >
+              <div key={turn.id} className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
                 <div
                   className={`max-w-[92%] sm:max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                     isUser
@@ -217,9 +204,7 @@ export function AskTab({
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200/80 dark:border-slate-800 pt-2.5 text-[11px] text-slate-500 dark:text-slate-400">
                       <div className="space-y-0.5">
                         <div>
-                          <span className="font-semibold text-slate-700 dark:text-slate-300">
-                            Source:{' '}
-                          </span>
+                          <span className="font-semibold text-slate-700 dark:text-slate-300">Source: </span>
                           {turn.dataSource || 'SaansSaathi Engine + CPCB/WHO KB'} ·{' '}
                           {new Date(turn.timestamp).toLocaleTimeString([], {
                             hour: '2-digit',
@@ -228,9 +213,7 @@ export function AskTab({
                         </div>
                         <div>
                           Confidence: {turn.confidence || 'High'}
-                          {turn.citations && turn.citations.length > 0
-                            ? ` · Cited: ${turn.citations.join(', ')}`
-                            : ''}
+                          {turn.citations && turn.citations.length > 0 ? ` · Cited: ${turn.citations.join(', ')}` : ''}
                         </div>
                       </div>
 
@@ -269,12 +252,13 @@ export function AskTab({
           <div ref={bottomRef} />
         </div>
 
-        {voiceNotice && (
-          <p className="mt-3 text-xs text-amber-800 dark:text-amber-300">{voiceNotice}</p>
-        )}
+        {voiceNotice && <p className="mt-3 text-xs text-amber-800 dark:text-amber-300">{voiceNotice}</p>}
 
         {/* Composer */}
-        <form onSubmit={handleSubmit} className="mt-4 flex items-center gap-2 border-t border-slate-200 dark:border-slate-800 pt-4">
+        <form
+          onSubmit={handleSubmit}
+          className="mt-4 flex items-center gap-2 border-t border-slate-200 dark:border-slate-800 pt-4"
+        >
           <button
             type="button"
             onClick={handleToggleMic}

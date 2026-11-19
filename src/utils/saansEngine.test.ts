@@ -1,5 +1,6 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
+import test from 'node:test';
+import { DEFAULT_SAANS_PROFILE, getDemoDelhiSevereSnapshot } from '../data/saansData';
 import {
   buildDeterministicDailyPlan,
   buildSituationObject,
@@ -12,7 +13,6 @@ import {
   findBestAndWorstHours48,
   getAqiBand,
 } from './saansEngine';
-import { DEFAULT_SAANS_PROFILE, getDemoDelhiSevereSnapshot } from '../data/saansData';
 
 test('calculateCpcbAqi follows official Indian CPCB PM2.5 & PM10 breakpoints', () => {
   assert.equal(calculateCpcbAqi(20, 0), 33);

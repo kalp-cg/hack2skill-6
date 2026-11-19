@@ -1,14 +1,14 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  sanitizeUserText,
-  validateCoordinates,
-  validateGeocodeQuery,
-  validateCommunityName,
-  SlidingWindowRateLimiter,
-} from './security.ts';
+import test from 'node:test';
 import { TtlLruCache } from './cache.ts';
 import { loadKnowledgeBase, retrieveKnowledge } from './rag.ts';
+import {
+  SlidingWindowRateLimiter,
+  sanitizeUserText,
+  validateCommunityName,
+  validateCoordinates,
+  validateGeocodeQuery,
+} from './security.ts';
 
 test('validateCoordinates accepts valid Indian coordinates and rejects out-of-range inputs', () => {
   const valid = validateCoordinates(28.5672, 77.21);

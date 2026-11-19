@@ -1,7 +1,7 @@
 import 'dotenv/config';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import express from 'express';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { createApp } from './src/server/app.js';
 
 const __filename = fileURLToPath(import.meta.url);

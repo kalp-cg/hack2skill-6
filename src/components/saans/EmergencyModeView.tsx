@@ -1,5 +1,5 @@
-import { ShieldAlert, Clock, CheckCircle2, ArrowLeft } from 'lucide-react';
-import { AirSnapshot, BestWorstHours, MemberRisk, SaansProfile } from '../../types/saans';
+import { ArrowLeft, CheckCircle2, Clock, ShieldAlert } from 'lucide-react';
+import type { AirSnapshot, BestWorstHours, MemberRisk, SaansProfile } from '../../types/saans';
 
 interface EmergencyModeViewProps {
   air: AirSnapshot;
@@ -56,20 +56,19 @@ export function EmergencyModeView({
             </div>
           </div>
           <p className="max-w-xl text-sm leading-relaxed text-rose-50">
-            Hazardous winter inversion is trapping toxic fine smoke near ground level (~{air.mixingHeightM} m mixing height). Follow the 5 high-priority protections below until air improves.
+            Hazardous winter inversion is trapping toxic fine smoke near ground level (~{air.mixingHeightM} m mixing
+            height). Follow the 5 high-priority protections below until air improves.
           </p>
         </div>
       </div>
 
       {/* Top 5 Emergency Actions */}
       <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
-        <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-          Top 5 Immediate Protective Actions
-        </h2>
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white">Top 5 Immediate Protective Actions</h2>
         <ol className="mt-4 space-y-3">
           {top5Actions.map((item, idx) => (
             <li
-              key={idx}
+              key={item}
               className="flex items-start gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-4 text-sm text-slate-800 dark:text-slate-200"
             >
               <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-rose-700 font-mono text-xs font-bold text-white">
@@ -84,9 +83,7 @@ export function EmergencyModeView({
       {/* School / Outdoor Advisory & Nearest Cleaner-Air Hours */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
-          <h3 className="text-base font-bold text-slate-900 dark:text-white">
-            Household &amp; School Advisory
-          </h3>
+          <h3 className="text-base font-bold text-slate-900 dark:text-white">Household &amp; School Advisory</h3>
           <ul className="mt-3 space-y-3">
             {memberRisks.map((mr) => (
               <li
@@ -94,9 +91,7 @@ export function EmergencyModeView({
                 className="border-b border-slate-100 dark:border-slate-800 pb-3 last:border-b-0 last:pb-0 text-sm"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-semibold text-slate-900 dark:text-white">
-                    {mr.memberLabel}
-                  </span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{mr.memberLabel}</span>
                   <span className="font-mono text-xs font-semibold text-rose-700 dark:text-rose-400">
                     {mr.risk} Risk
                   </span>
@@ -136,9 +131,7 @@ export function EmergencyModeView({
           </div>
 
           <div className="border-t border-slate-200 dark:border-slate-800 pt-4">
-            <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-              30-Second N95 / N99 Seal Check
-            </h4>
+            <h4 className="text-sm font-bold text-slate-900 dark:text-white">30-Second N95 / N99 Seal Check</h4>
             <ul className="mt-2 space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
               <li className="flex items-center gap-2">
                 <CheckCircle2 className="h-3.5 w-3.5 text-teal-700 shrink-0" />

@@ -92,7 +92,8 @@ export function getAqiBand(aqi: number): AqiBand {
       bgClass: 'bg-orange-50 dark:bg-orange-950/50',
       borderClass: 'border-orange-200 dark:border-orange-800',
       isEmergency: false,
-      advisory: 'Discomfort for asthma, heart, or lung conditions. Prefer midday outdoor windows and N95 on busy roads.',
+      advisory:
+        'Discomfort for asthma, heart, or lung conditions. Prefer midday outdoor windows and N95 on busy roads.',
     };
   }
   if (aqi <= 300) {
@@ -118,7 +119,8 @@ export function getAqiBand(aqi: number): AqiBand {
       bgClass: 'bg-purple-50 dark:bg-purple-950/50',
       borderClass: 'border-purple-200 dark:border-purple-800',
       isEmergency: true,
-      advisory: 'Smog Emergency (>300 AQI). Keep children and elders indoors, seal window gaps, and run HEPA continuously.',
+      advisory:
+        'Smog Emergency (>300 AQI). Keep children and elders indoors, seal window gaps, and run HEPA continuously.',
     };
   }
   return {
@@ -130,7 +132,8 @@ export function getAqiBand(aqi: number): AqiBand {
     bgClass: 'bg-rose-50 dark:bg-rose-950/60',
     borderClass: 'border-rose-300 dark:border-rose-800',
     isEmergency: true,
-    advisory: 'Hazardous winter smog. Trigger Smog Emergency Mode: halt all outdoor exercise, shift to WFH/metro, and maintain a sealed clean bedroom.',
+    advisory:
+      'Hazardous winter smog. Trigger Smog Emergency Mode: halt all outdoor exercise, shift to WFH/metro, and maintain a sealed clean bedroom.',
   };
 }
 
@@ -228,20 +231,12 @@ export function findBestAndWorstHours48(forecast: ForecastHour[]): BestWorstHour
 
 export function computeMemberRisks(aqi: number, profile: SaansProfile): MemberRisk[] {
   const risks: MemberRisk[] = [];
-  const hasRespCond =
-    profile.conditions.includes('asthma') || profile.conditions.includes('copd');
-  const hasCardioOrPreg =
-    profile.conditions.includes('heart') || profile.conditions.includes('pregnancy');
+  const hasRespCond = profile.conditions.includes('asthma') || profile.conditions.includes('copd');
+  const hasCardioOrPreg = profile.conditions.includes('heart') || profile.conditions.includes('pregnancy');
 
   for (const kid of profile.kids) {
     const risk: MemberRisk['risk'] =
-      aqi > 300 || (aqi > 200 && hasRespCond)
-        ? 'Critical'
-        : aqi > 150
-          ? 'High'
-          : aqi > 80
-            ? 'Moderate'
-            : 'Low';
+      aqi > 300 || (aqi > 200 && hasRespCond) ? 'Critical' : aqi > 150 ? 'High' : aqi > 80 ? 'Moderate' : 'Low';
     const guidance =
       risk === 'Critical'
         ? `Keep ${kid.name} (${kid.age}y) indoors for play; no outdoor sports and keep windows sealed.`
@@ -393,10 +388,7 @@ export function computeWhatIfImpact(
   const purifierFactor = (Math.min(24, Math.max(0, whatIf.purifierHours)) / 24) * 0.58;
   const cookingSealFactor = whatIf.cleanCookingAndSeal ? 0.28 : 0;
   const remainingIndoor = (1 - purifierFactor) * (1 - cookingSealFactor);
-  const projectedIndoorPm25 = Math.max(
-    6,
-    Math.round(baselineIndoorPm25 * remainingIndoor * 10) / 10
-  );
+  const projectedIndoorPm25 = Math.max(6, Math.round(baselineIndoorPm25 * remainingIndoor * 10) / 10);
 
   // Outdoor commute exposure factor with chosen mode + N95 mask compliance (N95 removes ~85% when fitted)
   const commuteOptions = computeCommuteAlternatives(
@@ -424,8 +416,7 @@ export function computeWhatIfImpact(
     dailyBeforeUg > 0 ? Math.min(92, Math.max(0, Math.round((dailyInhaledAvoidedUg / dailyBeforeUg) * 100))) : 0;
 
   // Berkeley Earth approximation: 22 ug/m3 for 24h (~330 ug inhaled) ~= 1 cigarette
-  const cigarettesAvoidedPerWeekApprox =
-    Math.round(((dailyInhaledAvoidedUg * 7) / 330) * 10) / 10;
+  const cigarettesAvoidedPerWeekApprox = Math.round(((dailyInhaledAvoidedUg * 7) / 330) * 10) / 10;
 
   // Monthly CO2 & INR savings
   const cookingCo2 = whatIf.cleanCookingAndSeal && profile.cookingFuel !== 'induction' ? 18 : 0;
@@ -508,13 +499,7 @@ export function buildSituationObject(
   language: AppLanguage
 ): SituationObject {
   const band = getAqiBand(air.aqi);
-  const inversion = detectInversionWarning(
-    air.pm25,
-    air.windKmh,
-    air.tempC,
-    air.humidityPct,
-    air.mixingHeightM
-  );
+  const inversion = detectInversionWarning(air.pm25, air.windKmh, air.tempC, air.humidityPct, air.mixingHeightM);
   const bestWorstHours = findBestAndWorstHours48(air.forecast48h);
   const memberRisks = computeMemberRisks(air.aqi, profile);
   const commuteAlternatives = computeCommuteAlternatives(
@@ -578,8 +563,7 @@ export function buildDeterministicDailyPlan(situation: SituationObject): DailyPl
   const kidName = profile.kids[0]?.name;
   const isEmergency = air.aqi > 300;
   const skippedCommute =
-    feedbackSummary.skippedIds.includes('commute-swap') ||
-    feedbackSummary.dislikedIds.includes('commute-swap');
+    feedbackSummary.skippedIds.includes('commute-swap') || feedbackSummary.dislikedIds.includes('commute-swap');
 
   const bestTransit =
     commuteAlternatives.find((c) => c.mode === 'metro') ??
@@ -662,7 +646,8 @@ export function buildDeterministicDailyPlan(situation: SituationObject): DailyPl
         pm25_ug: Math.max(24, Math.round(situation.engineEstimates.baselineIndoorPm25 * 0.28)),
         co2_kg: 1.1,
         inr: 160,
-        cigarettes_approx: Math.round((Math.max(24, situation.engineEstimates.baselineIndoorPm25 * 0.28) / 22) * 10) / 10,
+        cigarettes_approx:
+          Math.round((Math.max(24, situation.engineEstimates.baselineIndoorPm25 * 0.28) / 22) * 10) / 10,
       },
       effort: 'easy',
       category: 'indoor',
@@ -697,11 +682,7 @@ export function buildDeterministicDailyPlan(situation: SituationObject): DailyPl
   return {
     oneLineSummary,
     blocks,
-    top3Actions: [
-      blocks[4].action,
-      blocks[1].action,
-      blocks[3].action,
-    ],
+    top3Actions: [blocks[4].action, blocks[1].action, blocks[3].action],
     todaysWin:
       'Press a damp rolled towel under the bedroom door and turn on the kitchen chimney 5 minutes before dinner (takes 2 minutes).',
     adaptedNote: skippedCommute

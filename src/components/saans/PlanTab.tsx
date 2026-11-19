@@ -1,15 +1,7 @@
+import { Calculator, CheckCircle2, ChevronRight, Home, Info, Leaf, Route, Sparkles } from 'lucide-react';
 import { useState } from 'react';
-import {
-  Sparkles,
-  CheckCircle2,
-  ChevronRight,
-  Calculator,
-  Info,
-  Leaf,
-  Home,
-  Route,
-} from 'lucide-react';
-import {
+import { ROOM_INDOOR_HACKS } from '../../data/saansData';
+import type {
   ActionFeedbackState,
   AirSnapshot,
   CommuteOptionComparison,
@@ -18,7 +10,6 @@ import {
   RoomHack,
   SaansProfile,
 } from '../../types/saans';
-import { ROOM_INDOOR_HACKS } from '../../data/saansData';
 import { computeRoomCadr } from '../../utils/saansEngine';
 
 interface PlanTabProps {
@@ -52,9 +43,7 @@ export function PlanTab({
   const [roomSqFt, setRoomSqFt] = useState<number>(150);
 
   const filteredBlocks =
-    categoryFilter === 'all'
-      ? plan.blocks
-      : plan.blocks.filter((b) => b.category === categoryFilter);
+    categoryFilter === 'all' ? plan.blocks : plan.blocks.filter((b) => b.category === categoryFilter);
 
   const roomHacks: RoomHack[] = ROOM_INDOOR_HACKS.filter((h) => h.room === activeRoom);
   const recommendedCadr = computeRoomCadr(roomSqFt);
@@ -129,7 +118,10 @@ export function PlanTab({
         </div>
 
         {planError && (
-          <p role="alert" className="mt-4 rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 p-3 text-xs text-rose-800 dark:text-rose-300">
+          <p
+            role="alert"
+            className="mt-4 rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 p-3 text-xs text-rose-800 dark:text-rose-300"
+          >
             {planError}
           </p>
         )}
@@ -168,16 +160,12 @@ export function PlanTab({
                   <div className="flex items-start gap-3 min-w-0">
                     <CheckCircle2
                       className={`mt-0.5 h-5 w-5 shrink-0 ${
-                        isDone
-                          ? 'text-teal-700 dark:text-teal-400'
-                          : 'text-slate-300 dark:text-slate-600'
+                        isDone ? 'text-teal-700 dark:text-teal-400' : 'text-slate-300 dark:text-slate-600'
                       }`}
                     />
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">
-                          {block.period}
-                        </span>
+                        <span className="font-semibold text-slate-800 dark:text-slate-200">{block.period}</span>
                         <span>·</span>
                         <span className="font-mono tabular-nums">{block.timeRange}</span>
                         <span>·</span>
@@ -185,29 +173,23 @@ export function PlanTab({
                         <span>·</span>
                         <span>Effort: {block.effort}</span>
                         {isSkipped && (
-                          <span className="font-semibold text-amber-700 dark:text-amber-400">
-                            · Skipped
-                          </span>
+                          <span className="font-semibold text-amber-700 dark:text-amber-400">· Skipped</span>
                         )}
                       </div>
 
                       <div
                         className={`mt-1 text-sm font-semibold ${
-                          isDone
-                            ? 'text-teal-800 dark:text-teal-300 line-through'
-                            : 'text-slate-900 dark:text-white'
+                          isDone ? 'text-teal-800 dark:text-teal-300 line-through' : 'text-slate-900 dark:text-white'
                         }`}
                       >
                         {block.action}
                       </div>
 
-                      <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-                        {block.why}
-                      </p>
+                      <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300">{block.why}</p>
 
                       <div className="mt-2 font-mono text-xs font-medium text-teal-800 dark:text-teal-400 tabular-nums">
-                        -{block.impact.pm25_ug} µg/m³ PM2.5 · {block.impact.co2_kg} kg CO₂ · ₹
-                        {block.impact.inr} · ~{block.impact.cigarettes_approx} cig eq.*
+                        -{block.impact.pm25_ug} µg/m³ PM2.5 · {block.impact.co2_kg} kg CO₂ · ₹{block.impact.inr} · ~
+                        {block.impact.cigarettes_approx} cig eq.*
                       </div>
                     </div>
                   </div>
@@ -227,9 +209,7 @@ export function PlanTab({
               <Home className="h-4 w-4" aria-hidden="true" />
               <span>Indoor Air Quality Hacks Engine</span>
             </div>
-            <h2 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
-              Room-by-Room Clean Air Playbook
-            </h2>
+            <h2 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">Room-by-Room Clean Air Playbook</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               Evidence-based low-cost hacks, myth-busting, and True HEPA CADR sizing for Indian flats.
             </p>
@@ -287,9 +267,7 @@ export function PlanTab({
 
             <div className="flex items-baseline gap-4 rounded-xl border border-teal-200 dark:border-teal-800 bg-white dark:bg-slate-900 px-4 py-3">
               <div>
-                <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                  Min. True HEPA CADR
-                </div>
+                <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Min. True HEPA CADR</div>
                 <div className="font-mono text-2xl font-bold text-teal-800 dark:text-teal-400 tabular-nums">
                   {recommendedCadr} m³/h
                 </div>
@@ -310,12 +288,7 @@ export function PlanTab({
             >
               {hack.imageUrl && (
                 <div className="h-44 w-full overflow-hidden bg-slate-200 dark:bg-slate-800">
-                  <img
-                    src={hack.imageUrl}
-                    alt={hack.title}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                  />
+                  <img src={hack.imageUrl} alt={hack.title} className="h-full w-full object-cover" loading="lazy" />
                 </div>
               )}
 
@@ -323,12 +296,8 @@ export function PlanTab({
                 <div className="text-xs font-medium text-slate-500 dark:text-slate-400">
                   {hack.costLabel} · Cut ~{hack.pm25CutPct}% indoor PM2.5 · Effort: {hack.effort}
                 </div>
-                <h3 className="mt-1.5 text-base font-bold text-slate-900 dark:text-white">
-                  {hack.title}
-                </h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-                  {hack.summary}
-                </p>
+                <h3 className="mt-1.5 text-base font-bold text-slate-900 dark:text-white">{hack.title}</h3>
+                <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">{hack.summary}</p>
 
                 {hack.mythBuster && (
                   <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50/80 dark:bg-amber-950/40 p-3 text-xs text-amber-950 dark:text-amber-200">
@@ -339,10 +308,8 @@ export function PlanTab({
 
                 <ol className="mt-3 space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
                   {hack.steps.map((stepText, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <span className="font-mono font-bold text-teal-700 dark:text-teal-400">
-                        {idx + 1}.
-                      </span>
+                    <li key={stepText} className="flex items-start gap-2">
+                      <span className="font-mono font-bold text-teal-700 dark:text-teal-400">{idx + 1}.</span>
                       <span>{stepText}</span>
                     </li>
                   ))}
@@ -369,8 +336,8 @@ export function PlanTab({
               Your {profile.commuteDistanceKm} km Commute Comparison
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Calculated for {Math.max(1, 5 - profile.wfhDaysPerWeek)} office days/week at current{' '}
-              {air.city.name} PM2.5 ({air.pm25} µg/m³).
+              Calculated for {Math.max(1, 5 - profile.wfhDaysPerWeek)} office days/week at current {air.city.name} PM2.5
+              ({air.pm25} µg/m³).
             </p>
           </div>
           <span className="font-mono text-xs text-slate-500 dark:text-slate-400">
@@ -378,7 +345,8 @@ export function PlanTab({
           </span>
         </div>
 
-        <div className="mt-4 overflow-x-auto" tabIndex={0} role="region" aria-label="Commute comparison table">
+        {/* biome-ignore lint/a11y/noNoninteractiveTabindex: a scrollable region must be keyboard-focusable (WCAG 2.1.1). */}
+        <section className="mt-4 overflow-x-auto" tabIndex={0} aria-label="Commute comparison table">
           <table className="w-full min-w-[600px] border-collapse text-left text-xs">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400">
@@ -436,7 +404,7 @@ export function PlanTab({
               ))}
             </tbody>
           </table>
-        </div>
+        </section>
 
         {/* Clean Cooking, Heating & Zero-Burn Community Swaps */}
         <div className="mt-6 grid grid-cols-1 gap-4 border-t border-slate-200 dark:border-slate-800 pt-5 md:grid-cols-3">
@@ -446,7 +414,8 @@ export function PlanTab({
               <span>Clean Kitchen Swap</span>
             </div>
             <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-              Shifting boiling, tea &amp; slow simmering from LPG/biomass to a ₹2,200 induction cooktop cuts indoor NO₂ by ~55% and saves ~18 kg CO₂/month.
+              Shifting boiling, tea &amp; slow simmering from LPG/biomass to a ₹2,200 induction cooktop cuts indoor NO₂
+              by ~55% and saves ~18 kg CO₂/month.
             </p>
           </div>
           <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-4">
@@ -455,7 +424,8 @@ export function PlanTab({
               <span>Zero Open Waste-Burning</span>
             </div>
             <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-              Ask RWA security guards to replace night leaf/wood bonfires with electric oil heaters or thermal jackets—1 bonfire spikes AQI across an entire lane.
+              Ask RWA security guards to replace night leaf/wood bonfires with electric oil heaters or thermal jackets—1
+              bonfire spikes AQI across an entire lane.
             </p>
           </div>
           <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-4">
@@ -464,7 +434,8 @@ export function PlanTab({
               <span>EV / CNG &amp; No-Idling</span>
             </div>
             <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-              Switching off car engines at red lights (&gt;20s) and school pickup queues cuts local roadside PM2.5 spikes right at children’s breathing height.
+              Switching off car engines at red lights (&gt;20s) and school pickup queues cuts local roadside PM2.5
+              spikes right at children’s breathing height.
             </p>
           </div>
         </div>

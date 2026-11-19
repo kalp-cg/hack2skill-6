@@ -12,19 +12,15 @@
 
 import 'dotenv/config';
 import {
-  buildDeterministicDailyPlan,
-  buildSituationObject,
-  calculateCpcbAqi,
-} from '../src/utils/saansEngine';
-import {
   DEFAULT_SAANS_PROFILE,
   getDemoDelhiSevereSnapshot,
   getFallbackAirSnapshot,
   INDIAN_CITIES,
 } from '../src/data/saansData';
-import { retrieveKnowledge } from '../src/server/rag';
 import { generateAiPlan } from '../src/server/app';
+import { retrieveKnowledge } from '../src/server/rag';
 import type { AirSnapshot, AppLanguage, DailyPlanData, SaansProfile } from '../src/types/saans';
+import { buildDeterministicDailyPlan, buildSituationObject, calculateCpcbAqi } from '../src/utils/saansEngine';
 
 const LIVE = process.argv.includes('--live');
 
@@ -98,7 +94,10 @@ const SCENARIOS: EvalScenario[] = [
     persona: 'Hindi-speaking family with 2 toddlers & pet dog',
     profile: {
       ...DEFAULT_SAANS_PROFILE,
-      kids: [{ name: 'Diya', age: 3 }, { name: 'Kabir', age: 5 }],
+      kids: [
+        { name: 'Diya', age: 3 },
+        { name: 'Kabir', age: 5 },
+      ],
       hasPets: true,
     },
     air: getDemoDelhiSevereSnapshot(),
@@ -126,25 +125,51 @@ const SCENARIOS: EvalScenario[] = [
   {
     id: 'S12',
     persona: 'High-floor Mumbai flat with existing HEPA purifier',
-    profile: { ...DEFAULT_SAANS_PROFILE, city: INDIAN_CITIES[5], floorNumber: 12, hasPurifier: true, cookingFuel: 'induction' },
+    profile: {
+      ...DEFAULT_SAANS_PROFILE,
+      city: INDIAN_CITIES[5],
+      floorNumber: 12,
+      hasPurifier: true,
+      cookingFuel: 'induction',
+    },
     air: makeAir(5, 80, 11.0),
   },
   {
     id: 'S13',
     persona: 'Low-budget zero-cost family in ground-floor main-road house',
-    profile: { ...DEFAULT_SAANS_PROFILE, homeType: 'house', floorNumber: 0, windowExposure: 'main_road', goal: 'money', hasPurifier: false },
+    profile: {
+      ...DEFAULT_SAANS_PROFILE,
+      homeType: 'house',
+      floorNumber: 0,
+      windowExposure: 'main_road',
+      goal: 'money',
+      hasPurifier: false,
+    },
     air: makeAir(0, 210, 4.1),
   },
   {
     id: 'S14',
     persona: 'School-going twins in Delhi emergency AQI 430',
-    profile: { ...DEFAULT_SAANS_PROFILE, kids: [{ name: 'Riya', age: 8 }, { name: 'Rohan', age: 8 }], conditions: ['asthma'] },
+    profile: {
+      ...DEFAULT_SAANS_PROFILE,
+      kids: [
+        { name: 'Riya', age: 8 },
+        { name: 'Rohan', age: 8 },
+      ],
+      conditions: ['asthma'],
+    },
     air: makeAir(0, 320, 3.0),
   },
   {
     id: 'S15',
     persona: 'WFH hybrid parent using induction + metro on office days',
-    profile: { ...DEFAULT_SAANS_PROFILE, commuteMode: 'metro', wfhDaysPerWeek: 3, cookingFuel: 'induction', hasPurifier: true },
+    profile: {
+      ...DEFAULT_SAANS_PROFILE,
+      commuteMode: 'metro',
+      wfhDaysPerWeek: 3,
+      cookingFuel: 'induction',
+      hasPurifier: true,
+    },
     air: makeAir(1, 145, 5.8),
   },
 ];
@@ -154,9 +179,15 @@ const UNSAFE_OUTDOOR_REGEX = /\b(go for a jog|run outdoors|outdoor exercise reco
 
 let passedCount = 0;
 
-console.log(`\nSaansSaathi — 15-Scenario Evaluation Results (${LIVE ? 'LIVE Gemini plans' : 'deterministic engine plans'})\n`);
-console.log('| ID  | Persona                                               | AQI | Schema | Safety | Numeric | RAG | Status |');
-console.log('|-----|-------------------------------------------------------|-----|--------|--------|---------|-----|--------|');
+console.log(
+  `\nSaansSaathi — 15-Scenario Evaluation Results (${LIVE ? 'LIVE Gemini plans' : 'deterministic engine plans'})\n`
+);
+console.log(
+  '| ID  | Persona                                               | AQI | Schema | Safety | Numeric | RAG | Status |'
+);
+console.log(
+  '|-----|-------------------------------------------------------|-----|--------|--------|---------|-----|--------|'
+);
 
 for (const sc of SCENARIOS) {
   const situation = buildSituationObject(
@@ -225,7 +256,9 @@ for (const sc of SCENARIOS) {
   );
 }
 
-console.log(`\nSummary: ${passedCount}/${SCENARIOS.length} scenarios passed all checks (Schema, Safety Guardrails, Numeric Consistency, RAG Grounding).\n`);
+console.log(
+  `\nSummary: ${passedCount}/${SCENARIOS.length} scenarios passed all checks (Schema, Safety Guardrails, Numeric Consistency, RAG Grounding).\n`
+);
 if (passedCount !== SCENARIOS.length) {
   process.exit(1);
 }

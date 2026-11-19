@@ -1,11 +1,4 @@
-import {
-  AirSnapshot,
-  CityInfo,
-  CommunityGroup,
-  ForecastHour,
-  RoomHack,
-  SaansProfile,
-} from '../types/saans';
+import type { AirSnapshot, CityInfo, CommunityGroup, ForecastHour, RoomHack, SaansProfile } from '../types/saans';
 import { calculateCpcbAqi } from '../utils/saansEngine';
 
 export const INDIAN_CITIES: CityInfo[] = [
@@ -43,8 +36,8 @@ export const DEFAULT_SAANS_PROFILE: SaansProfile = {
 
 function build48hCurve(basePm25: number): ForecastHour[] {
   const hourlyMultipliers = [
-    1.18, 1.2, 1.18, 1.15, 1.18, 1.26, 1.35, 1.38, 1.28, 1.1, 0.92, 0.78,
-    0.66, 0.56, 0.54, 0.6, 0.74, 0.94, 1.12, 1.24, 1.32, 1.3, 1.25, 1.2,
+    1.18, 1.2, 1.18, 1.15, 1.18, 1.26, 1.35, 1.38, 1.28, 1.1, 0.92, 0.78, 0.66, 0.56, 0.54, 0.6, 0.74, 0.94, 1.12, 1.24,
+    1.32, 1.3, 1.25, 1.2,
   ];
   const points: ForecastHour[] = [];
   const now = new Date();
@@ -141,7 +134,7 @@ export const ROOM_INDOOR_HACKS: RoomHack[] = [
       'Run on high 30 minutes before bedtime, then quiet sleep/medium mode all night.',
     ],
     source: 'US EPA Indoor Air & ASHRAE CADR Guide',
-    imageUrl: '/src/assets/images/hack_diy_purifier_1795064168031.jpg',
+    imageUrl: '/images/diy-purifier.webp',
   },
   {
     id: 'bedroom-damp-seal',
@@ -176,7 +169,7 @@ export const ROOM_INDOOR_HACKS: RoomHack[] = [
       'Use covered pressure cookers, steaming, or an electric kettle/induction burner on Severe smog evenings.',
     ],
     source: 'IIT-Delhi Kitchen IAQ Study & WHO NO₂ Guidelines',
-    imageUrl: '/src/assets/images/hack_clean_kitchen_1795064169824.jpg',
+    imageUrl: '/images/clean-kitchen.webp',
   },
   {
     id: 'kitchen-zero-incense',

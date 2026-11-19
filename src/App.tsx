@@ -3,22 +3,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import confetti from 'canvas-confetti';
+import { BarChart3, Bell, CalendarCheck, Info, MessageCircle, Moon, Settings, Sun, Users, Wind, X } from 'lucide-react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { ActionBottomSheet } from './components/saans/ActionBottomSheet';
+import { OfflineBanner, PWAInstallButton } from './components/saans/PwaControls';
+import { SplashOnboarding } from './components/saans/SplashOnboarding';
+import { TodayTab } from './components/saans/TodayTab';
+import { UI_COPY } from './data/i18n';
 import {
-  Wind,
-  CalendarCheck,
-  BarChart3,
-  MessageCircle,
-  Users,
-  Settings,
-  Info,
-  Moon,
-  Sun,
-  Bell,
-  X,
-} from 'lucide-react';
-import {
+  DEFAULT_SAANS_PROFILE,
+  getDemoDelhiSevereSnapshot,
+  getFallbackAirSnapshot,
+  SEED_COMMUNITIES,
+} from './data/saansData';
+import type {
   ActionFeedbackState,
   AirSnapshot,
   AppLanguage,
@@ -31,13 +30,6 @@ import {
   WhatIfInputs,
 } from './types/saans';
 import {
-  DEFAULT_SAANS_PROFILE,
-  SEED_COMMUNITIES,
-  getDemoDelhiSevereSnapshot,
-  getFallbackAirSnapshot,
-} from './data/saansData';
-import { UI_COPY } from './data/i18n';
-import {
   buildDeterministicDailyPlan,
   buildSituationObject,
   computeCommuteAlternatives,
@@ -47,18 +39,12 @@ import {
   findBestAndWorstHours48,
   getAqiBand,
 } from './utils/saansEngine';
-import { SplashOnboarding } from './components/saans/SplashOnboarding';
-import { TodayTab } from './components/saans/TodayTab';
-import { ActionBottomSheet } from './components/saans/ActionBottomSheet';
-import { OfflineBanner, PWAInstallButton } from './components/saans/PwaControls';
 
 // Secondary views load on demand so the first paint only ships the Today tab.
 const PlanTab = lazy(() => import('./components/saans/PlanTab').then((m) => ({ default: m.PlanTab })));
 const ImpactTab = lazy(() => import('./components/saans/ImpactTab').then((m) => ({ default: m.ImpactTab })));
 const AskTab = lazy(() => import('./components/saans/AskTab').then((m) => ({ default: m.AskTab })));
-const CommunityTab = lazy(() =>
-  import('./components/saans/CommunityTab').then((m) => ({ default: m.CommunityTab }))
-);
+const CommunityTab = lazy(() => import('./components/saans/CommunityTab').then((m) => ({ default: m.CommunityTab })));
 const EmergencyModeView = lazy(() =>
   import('./components/saans/EmergencyModeView').then((m) => ({ default: m.EmergencyModeView }))
 );
@@ -176,13 +162,7 @@ export default function App() {
   const bestWorstHours = useMemo(() => findBestAndWorstHours48(air.forecast48h), [air.forecast48h]);
   const memberRisks = useMemo(() => computeMemberRisks(air.aqi, profile), [air.aqi, profile]);
   const commuteAlternatives = useMemo(
-    () =>
-      computeCommuteAlternatives(
-        profile.commuteDistanceKm,
-        profile.commuteMode,
-        air.pm25,
-        profile.wfhDaysPerWeek
-      ),
+    () => computeCommuteAlternatives(profile.commuteDistanceKm, profile.commuteMode, air.pm25, profile.wfhDaysPerWeek),
     [profile.commuteDistanceKm, profile.commuteMode, profile.wfhDaysPerWeek, air.pm25]
   );
 
@@ -208,6 +188,7 @@ export default function App() {
   }, [darkMode, largeText, highContrast]);
 
   // Reset scroll to top on tab or emergency view navigation
+  // biome-ignore lint/correctness/useExhaustiveDependencies: both values are navigation triggers, not inputs.
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'auto' });
   }, [activeTab, emergencyViewOpen]);
@@ -228,41 +209,42 @@ export default function App() {
   }, [profile, language, feedback, streakDays, darkMode, largeText, highContrast]);
 
   // Fetch live AQI from backend Open-Meteo route
-  const fetchLiveAir = useCallback(async (city = profile.city) => {
-    setIsLoadingAir(true);
-    try {
-      const resp = await fetch(`/api/aqi?lat=${city.lat}&lon=${city.lon}`);
-      if (!resp.ok) throw new Error('AQI fetch failed');
-      const data = await resp.json();
-      const snapshot: AirSnapshot = {
-        city,
-        source: 'open-meteo-live',
-        updatedAt: data.updatedAt || new Date().toISOString(),
-        aqi: data.aqi,
-        pm25: data.pm25,
-        pm10: data.pm10,
-        no2: data.no2,
-        o3: data.o3,
-        tempC: data.tempC,
-        humidityPct: data.humidityPct,
-        windKmh: data.windKmh,
-        mixingHeightM: data.mixingHeightM,
-        forecast48h: data.forecast48h,
-      };
-      setLiveAir(snapshot);
+  const fetchLiveAir = useCallback(
+    async (city = profile.city) => {
+      setIsLoadingAir(true);
       try {
-        localStorage.setItem(STORAGE_KEYS.cachedAir, JSON.stringify(snapshot));
+        const resp = await fetch(`/api/aqi?lat=${city.lat}&lon=${city.lon}`);
+        if (!resp.ok) throw new Error('AQI fetch failed');
+        const data = await resp.json();
+        const snapshot: AirSnapshot = {
+          city,
+          source: 'open-meteo-live',
+          updatedAt: data.updatedAt || new Date().toISOString(),
+          aqi: data.aqi,
+          pm25: data.pm25,
+          pm10: data.pm10,
+          no2: data.no2,
+          o3: data.o3,
+          tempC: data.tempC,
+          humidityPct: data.humidityPct,
+          windKmh: data.windKmh,
+          mixingHeightM: data.mixingHeightM,
+          forecast48h: data.forecast48h,
+        };
+        setLiveAir(snapshot);
+        try {
+          localStorage.setItem(STORAGE_KEYS.cachedAir, JSON.stringify(snapshot));
+        } catch {
+          // ignore
+        }
       } catch {
-        // ignore
+        setLiveAir((prev) => (prev.city.id === city.id ? prev : getFallbackAirSnapshot(city)));
+      } finally {
+        setIsLoadingAir(false);
       }
-    } catch {
-      setLiveAir((prev) =>
-        prev.city.id === city.id ? prev : getFallbackAirSnapshot(city)
-      );
-    } finally {
-      setIsLoadingAir(false);
-    }
-  }, [profile.city]);
+    },
+    [profile.city]
+  );
 
   useEffect(() => {
     if (profile.completedOnboarding && !demoSevereMode) {
@@ -340,9 +322,7 @@ export default function App() {
     setFeedback((prev) => ({
       ...prev,
       doneIds: prev.doneIds.filter((id) => id !== actionId),
-      skippedIds: prev.skippedIds.includes(actionId)
-        ? prev.skippedIds
-        : [...prev.skippedIds, actionId],
+      skippedIds: prev.skippedIds.includes(actionId) ? prev.skippedIds : [...prev.skippedIds, actionId],
     }));
     // Clear cached AI plan so deterministic adaptation immediately shows easier swap
     setAiPlan(null);
@@ -502,12 +482,9 @@ export default function App() {
           >
             <img src="/icon.svg" alt="" className="h-8 w-8 rounded-lg" />
             <div className="leading-tight">
-              <div className="text-sm font-bold tracking-tight text-slate-900 dark:text-white">
-                SaansSaathi
-              </div>
+              <div className="text-sm font-bold tracking-tight text-slate-900 dark:text-white">SaansSaathi</div>
               <div className="hidden sm:block text-[11px] text-slate-500 dark:text-slate-400">
-                {air.city.name} · AQI{' '}
-                <span className="font-mono font-semibold tabular-nums">{air.aqi}</span>
+                {air.city.name} · AQI <span className="font-mono font-semibold tabular-nums">{air.aqi}</span>
               </div>
             </div>
           </button>
@@ -594,7 +571,9 @@ export default function App() {
             <div className="flex items-center gap-2">
               <Bell className="h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400" aria-hidden="true" />
               <span>
-                <strong>Smart Alert:</strong> {air.city.name} AQI ({air.aqi}) crossed your alert threshold ({profile.alertThresholdAqi}). Best outdoor window today is {bestWorstHours.bestStartLabel}–{bestWorstHours.bestEndLabel}.
+                <strong>Smart Alert:</strong> {air.city.name} AQI ({air.aqi}) crossed your alert threshold (
+                {profile.alertThresholdAqi}). Best outdoor window today is {bestWorstHours.bestStartLabel}–
+                {bestWorstHours.bestEndLabel}.
               </span>
             </div>
             <button
@@ -615,96 +594,96 @@ export default function App() {
             </p>
           }
         >
-        {emergencyViewOpen ? (
-          <EmergencyModeView
-            air={air}
-            profile={profile}
-            bestWorstHours={bestWorstHours}
-            memberRisks={memberRisks}
-            onExitEmergencyView={() => setEmergencyViewOpen(false)}
-          />
-        ) : (
-          <>
-            {activeTab === 'today' && (
-              <TodayTab
-                language={language}
-                profile={profile}
-                air={air}
-                band={band}
-                inversion={inversion}
-                bestWorstHours={bestWorstHours}
-                memberRisks={memberRisks}
-                plan={activePlan}
-                feedback={feedback}
-                isGeneratingPlan={isGeneratingPlan}
-                planError={planError}
-                isLoadingAir={isLoadingAir}
-                demoSevereMode={demoSevereMode}
-                onToggleDemoSevere={() => {
-                  setDemoSevereMode((d) => !d);
-                  setAiPlan(null);
-                }}
-                onRefreshAir={() => void fetchLiveAir(profile.city)}
-                onGenerateAiPlan={() => void handleGenerateAiPlan()}
-                onOpenEmergency={() => setEmergencyViewOpen(true)}
-                onSelectAction={(act) => setSelectedAction(act)}
-                onOpenFullPlan={() => setActiveTab('plan')}
-              />
-            )}
+          {emergencyViewOpen ? (
+            <EmergencyModeView
+              air={air}
+              profile={profile}
+              bestWorstHours={bestWorstHours}
+              memberRisks={memberRisks}
+              onExitEmergencyView={() => setEmergencyViewOpen(false)}
+            />
+          ) : (
+            <>
+              {activeTab === 'today' && (
+                <TodayTab
+                  language={language}
+                  profile={profile}
+                  air={air}
+                  band={band}
+                  inversion={inversion}
+                  bestWorstHours={bestWorstHours}
+                  memberRisks={memberRisks}
+                  plan={activePlan}
+                  feedback={feedback}
+                  isGeneratingPlan={isGeneratingPlan}
+                  planError={planError}
+                  isLoadingAir={isLoadingAir}
+                  demoSevereMode={demoSevereMode}
+                  onToggleDemoSevere={() => {
+                    setDemoSevereMode((d) => !d);
+                    setAiPlan(null);
+                  }}
+                  onRefreshAir={() => void fetchLiveAir(profile.city)}
+                  onGenerateAiPlan={() => void handleGenerateAiPlan()}
+                  onOpenEmergency={() => setEmergencyViewOpen(true)}
+                  onSelectAction={(act) => setSelectedAction(act)}
+                  onOpenFullPlan={() => setActiveTab('plan')}
+                />
+              )}
 
-            {activeTab === 'plan' && (
-              <PlanTab
-                profile={profile}
-                air={air}
-                plan={activePlan}
-                feedback={feedback}
-                commuteAlternatives={commuteAlternatives}
-                isGeneratingPlan={isGeneratingPlan}
-                planError={planError}
-                onGenerateAiPlan={() => void handleGenerateAiPlan()}
-                onSelectAction={(act) => setSelectedAction(act)}
-              />
-            )}
+              {activeTab === 'plan' && (
+                <PlanTab
+                  profile={profile}
+                  air={air}
+                  plan={activePlan}
+                  feedback={feedback}
+                  commuteAlternatives={commuteAlternatives}
+                  isGeneratingPlan={isGeneratingPlan}
+                  planError={planError}
+                  onGenerateAiPlan={() => void handleGenerateAiPlan()}
+                  onSelectAction={(act) => setSelectedAction(act)}
+                />
+              )}
 
-            {activeTab === 'impact' && (
-              <ImpactTab
-                profile={profile}
-                air={air}
-                whatIf={whatIf}
-                report={impactReport}
-                completedCount={feedback.doneIds.length}
-                onChangeWhatIf={setWhatIf}
-              />
-            )}
+              {activeTab === 'impact' && (
+                <ImpactTab
+                  profile={profile}
+                  air={air}
+                  whatIf={whatIf}
+                  report={impactReport}
+                  completedCount={feedback.doneIds.length}
+                  onChangeWhatIf={setWhatIf}
+                />
+              )}
 
-            {activeTab === 'ask' && (
-              <AskTab
-                language={language}
-                situation={situation}
-                messages={chatMessages}
-                onChangeLanguage={setLanguage}
-                onSendMessage={handleSendChat}
-                isSending={isSendingChat}
-              />
-            )}
+              {activeTab === 'ask' && (
+                <AskTab
+                  language={language}
+                  situation={situation}
+                  messages={chatMessages}
+                  onChangeLanguage={setLanguage}
+                  onSendMessage={handleSendChat}
+                  isSending={isSendingChat}
+                />
+              )}
 
-            {activeTab === 'community' && (
-              <CommunityTab
-                profile={profile}
-                air={air}
-                report={impactReport}
-                feedback={feedback}
-                streakDays={streakDays}
-                maskCompliancePct={whatIf.maskCompliancePct}
-                communities={communities}
-                activeCommunityId={activeCommunityId}
-                onSelectCommunity={setActiveCommunityId}
-                onCreateCommunity={handleCreateCommunity}
-                onJoinCommunity={handleJoinCommunity}
-              />
-            )}
-          </>
-        )}
+              {activeTab === 'community' && (
+                <CommunityTab
+                  profile={profile}
+                  air={air}
+                  report={impactReport}
+                  feedback={feedback}
+                  streakDays={streakDays}
+                  maskCompliancePct={whatIf.maskCompliancePct}
+                  communities={communities}
+                  activeCommunityId={activeCommunityId}
+                  onSelectCommunity={setActiveCommunityId}
+                  onCreateCommunity={handleCreateCommunity}
+                  onJoinCommunity={handleJoinCommunity}
+                />
+              )}
+            </>
+          )}
         </Suspense>
       </main>
 
@@ -727,9 +706,7 @@ export default function App() {
                   setActiveTab(item.id);
                 }}
                 className={`flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold cursor-pointer ${
-                  active
-                    ? 'text-teal-700 dark:text-teal-400'
-                    : 'text-slate-500 dark:text-slate-400'
+                  active ? 'text-teal-700 dark:text-teal-400' : 'text-slate-500 dark:text-slate-400'
                 }`}
               >
                 <Icon className="h-5 w-5" aria-hidden="true" />
@@ -755,33 +732,30 @@ export default function App() {
       {/* Settings & About/How-It-Works Modal */}
       {modalState.open && (
         <Suspense fallback={null}>
-        <SettingsAboutModal
-          key={modalState.view}
-          isOpen={modalState.open}
-          initialView={modalState.view}
-          language={language}
-          profile={profile}
-          darkMode={darkMode}
-          largeText={largeText}
-          highContrast={highContrast}
-          demoSevereMode={demoSevereMode}
-          onClose={() => setModalState((m) => ({ ...m, open: false }))}
-          onChangeLanguage={setLanguage}
-          onUpdateProfile={(next) => {
-            setProfile(next);
-            setAiPlan(null);
-          }}
-          onToggleDarkMode={() => setDarkMode((d) => !d)}
-          onToggleLargeText={() => setLargeText((l) => !l)}
-          onToggleHighContrast={() => setHighContrast((h) => !h)}
-          onToggleDemoSevere={() => {
-            setDemoSevereMode((d) => !d);
-            setAiPlan(null);
-          }}
-          onRedoOnboarding={() =>
-            setProfile((p) => ({ ...p, completedOnboarding: false }))
-          }
-        />
+          <SettingsAboutModal
+            key={modalState.view}
+            initialView={modalState.view}
+            language={language}
+            profile={profile}
+            darkMode={darkMode}
+            largeText={largeText}
+            highContrast={highContrast}
+            demoSevereMode={demoSevereMode}
+            onClose={() => setModalState((m) => ({ ...m, open: false }))}
+            onChangeLanguage={setLanguage}
+            onUpdateProfile={(next) => {
+              setProfile(next);
+              setAiPlan(null);
+            }}
+            onToggleDarkMode={() => setDarkMode((d) => !d)}
+            onToggleLargeText={() => setLargeText((l) => !l)}
+            onToggleHighContrast={() => setHighContrast((h) => !h)}
+            onToggleDemoSevere={() => {
+              setDemoSevereMode((d) => !d);
+              setAiPlan(null);
+            }}
+            onRedoOnboarding={() => setProfile((p) => ({ ...p, completedOnboarding: false }))}
+          />
         </Suspense>
       )}
     </div>

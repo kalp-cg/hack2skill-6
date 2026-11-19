@@ -1,22 +1,7 @@
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ReferenceLine,
-} from 'recharts';
-import {
-  AlertTriangle,
-  Clock,
-  Sparkles,
-  CheckCircle2,
-  ChevronRight,
-  Flame,
-  RefreshCw,
-} from 'lucide-react';
-import {
+import { AlertTriangle, CheckCircle2, ChevronRight, Clock, Flame, RefreshCw, Sparkles } from 'lucide-react';
+import { Area, AreaChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { UI_COPY } from '../../data/i18n';
+import type {
   ActionFeedbackState,
   AirSnapshot,
   AppLanguage,
@@ -28,7 +13,6 @@ import {
   PlanRecommendation,
   SaansProfile,
 } from '../../types/saans';
-import { UI_COPY } from '../../data/i18n';
 import { AqiRingGauge } from './AqiRingGauge';
 
 interface TodayTabProps {
@@ -193,16 +177,15 @@ export function TodayTab({
                 {bestWorstHours.bestStartLabel} – {bestWorstHours.bestEndLabel}
               </div>
               <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
-                Avoid peak trapping around {bestWorstHours.worstLabel} (AQI {bestWorstHours.worstAqi}). Tomorrow’s cleanest window: {bestWorstHours.tomorrowBestLabel}.
+                Avoid peak trapping around {bestWorstHours.worstLabel} (AQI {bestWorstHours.worstAqi}). Tomorrow’s
+                cleanest window: {bestWorstHours.tomorrowBestLabel}.
               </p>
             </div>
 
             {/* Winter Inversion / Low Mixing-Height Warning */}
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800 p-4">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-900 dark:text-white">
-                  {inversion.headline}
-                </span>
+                <span className="font-semibold text-slate-900 dark:text-white">{inversion.headline}</span>
                 <span
                   className={`font-mono font-semibold ${
                     inversion.severity === 'Severe'
@@ -215,23 +198,17 @@ export function TodayTab({
                   {inversion.severity}
                 </span>
               </div>
-              <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-                {inversion.explanation}
-              </p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300">{inversion.explanation}</p>
             </div>
           </div>
 
           {/* Household Member Risk Matrix */}
           <div className="border-t border-slate-200 dark:border-slate-800 pt-4">
-            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Household Protection Radar
-            </div>
+            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">Household Protection Radar</div>
             <div className="mt-2 space-y-2">
               {memberRisks.slice(0, 3).map((mr) => (
                 <div key={mr.memberLabel} className="flex items-baseline justify-between gap-2 text-xs">
-                  <span className="font-semibold text-slate-900 dark:text-white">
-                    {mr.memberLabel}
-                  </span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{mr.memberLabel}</span>
                   <span
                     className={`font-mono font-semibold ${
                       mr.risk === 'Critical'
@@ -254,9 +231,7 @@ export function TodayTab({
       <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-              48-Hour AQI Forecast
-            </h2>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">48-Hour AQI Forecast</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               Plan errands, school runs, and window airing around afternoon smog dips (CPCB scale).
             </p>
@@ -295,7 +270,12 @@ export function TodayTab({
                   fontSize: '12px',
                 }}
               />
-              <ReferenceLine y={300} stroke="#dc2626" strokeDasharray="4 4" label={{ value: 'Emergency 300', position: 'insideTopRight', fontSize: 10, fill: '#dc2626' }} />
+              <ReferenceLine
+                y={300}
+                stroke="#dc2626"
+                strokeDasharray="4 4"
+                label={{ value: 'Emergency 300', position: 'insideTopRight', fontSize: 10, fill: '#dc2626' }}
+              />
               <Area
                 type="monotone"
                 dataKey="aqi"
@@ -313,9 +293,7 @@ export function TodayTab({
       <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-              {copy.todaysPlanTitle}
-            </h2>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">{copy.todaysPlanTitle}</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               Tap any card for Why, Engine Impact, Citation &amp; one-tap check-in ·{' '}
               {plan.source === 'gemini-ai' ? 'AI Personalized (RAG)' : 'Deterministic Baseline'}
@@ -343,7 +321,10 @@ export function TodayTab({
         </div>
 
         {planError && (
-          <p role="alert" className="mt-3 rounded-xl border border-rose-200 bg-rose-50 dark:bg-rose-950/50 p-3 text-xs text-rose-800 dark:text-rose-300">
+          <p
+            role="alert"
+            className="mt-3 rounded-xl border border-rose-200 bg-rose-50 dark:bg-rose-950/50 p-3 text-xs text-rose-800 dark:text-rose-300"
+          >
             {planError}
           </p>
         )}
@@ -368,16 +349,12 @@ export function TodayTab({
                 <div className="flex items-start gap-3 min-w-0">
                   <CheckCircle2
                     className={`mt-0.5 h-5 w-5 shrink-0 ${
-                      isDone
-                        ? 'text-teal-700 dark:text-teal-400'
-                        : 'text-slate-300 dark:text-slate-600'
+                      isDone ? 'text-teal-700 dark:text-teal-400' : 'text-slate-300 dark:text-slate-600'
                     }`}
                   />
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                      <span className="font-semibold text-slate-700 dark:text-slate-200">
-                        {block.period}
-                      </span>
+                      <span className="font-semibold text-slate-700 dark:text-slate-200">{block.period}</span>
                       <span>·</span>
                       <span className="font-mono tabular-nums">{block.timeRange}</span>
                       <span>·</span>
@@ -386,9 +363,7 @@ export function TodayTab({
                     </div>
                     <div
                       className={`mt-0.5 text-sm font-semibold ${
-                        isDone
-                          ? 'text-teal-800 dark:text-teal-300 line-through'
-                          : 'text-slate-900 dark:text-white'
+                        isDone ? 'text-teal-800 dark:text-teal-300 line-through' : 'text-slate-900 dark:text-white'
                       }`}
                     >
                       {block.action}
@@ -406,9 +381,7 @@ export function TodayTab({
 
         {/* Today's 5-Minute Win */}
         <div className="mt-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-4">
-          <div className="text-xs font-semibold text-teal-800 dark:text-teal-400">
-            Today’s 5-Minute Win
-          </div>
+          <div className="text-xs font-semibold text-teal-800 dark:text-teal-400">Today’s 5-Minute Win</div>
           <p className="mt-1 text-sm text-slate-800 dark:text-slate-200">{plan.todaysWin}</p>
         </div>
       </section>

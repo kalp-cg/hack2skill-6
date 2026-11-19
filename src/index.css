@@ -25,7 +25,10 @@
     filter: contrast(1.12);
   }
 
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     font-family: var(--font-display);
     text-wrap: balance;
   }
@@ -48,7 +51,10 @@
   html {
     scroll-behavior: auto;
   }
-  *, *::before, *::after {
+  /* !important is intentional: it must beat every component-level animation for reduced-motion users. */
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

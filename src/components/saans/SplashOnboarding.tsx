@@ -1,15 +1,8 @@
-import { useState, FormEvent } from 'react';
-import {
-  MapPin,
-  LocateFixed,
-  Search,
-  ChevronRight,
-  ChevronLeft,
-  Flame,
-  Plus,
-  Trash2,
-} from 'lucide-react';
-import {
+import { ChevronLeft, ChevronRight, Flame, LocateFixed, MapPin, Plus, Search, Trash2 } from 'lucide-react';
+import { type FormEvent, useState } from 'react';
+import { LANG_LABELS, UI_COPY } from '../../data/i18n';
+import { INDIAN_CITIES } from '../../data/saansData';
+import type {
   AppLanguage,
   CityInfo,
   CommuteMode,
@@ -20,8 +13,6 @@ import {
   HomeType,
   SaansProfile,
 } from '../../types/saans';
-import { INDIAN_CITIES } from '../../data/saansData';
-import { LANG_LABELS, UI_COPY } from '../../data/i18n';
 
 interface SplashOnboardingProps {
   language: AppLanguage;
@@ -30,12 +21,7 @@ interface SplashOnboardingProps {
   onComplete: (profile: SaansProfile, enableDemoSevere?: boolean) => void;
 }
 
-export function SplashOnboarding({
-  language,
-  initialProfile,
-  onChangeLanguage,
-  onComplete,
-}: SplashOnboardingProps) {
+export function SplashOnboarding({ language, initialProfile, onChangeLanguage, onComplete }: SplashOnboardingProps) {
   const [stage, setStage] = useState<'splash' | 'wizard'>('splash');
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [profile, setProfile] = useState<SaansProfile>(initialProfile);
@@ -57,9 +43,7 @@ export function SplashOnboarding({
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
-          const resp = await fetch(
-            `/api/reverse-geocode?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`
-          );
+          const resp = await fetch(`/api/reverse-geocode?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
           const data = await resp.json();
           if (data.city) {
             setProfile((p) => ({ ...p, city: data.city }));
@@ -120,15 +104,12 @@ export function SplashOnboarding({
         <div className="mx-auto flex w-full max-w-2xl items-center justify-between">
           <div className="flex items-center gap-2.5">
             <img src="/icon.svg" alt="" className="h-9 w-9 rounded-xl" />
-            <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
-              SaansSaathi
-            </span>
+            <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">SaansSaathi</span>
           </div>
 
-          <div
-            role="group"
+          <fieldset
             aria-label="Choose language"
-            className="flex items-center gap-1 rounded-xl bg-slate-200/80 dark:bg-slate-800 p-1"
+            className="min-w-0 flex items-center gap-1 rounded-xl bg-slate-200/80 dark:bg-slate-800 p-1"
           >
             {(['en', 'hi', 'gu'] as AppLanguage[]).map((code) => (
               <button
@@ -145,42 +126,32 @@ export function SplashOnboarding({
                 {LANG_LABELS[code]}
               </button>
             ))}
-          </div>
+          </fieldset>
         </div>
 
         <main className="mx-auto my-auto w-full max-w-2xl py-10">
           <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-10">
-            <p className="text-xs font-semibold text-teal-700 dark:text-teal-400">
-              SaansSaathi · {copy.tagline}
-            </p>
+            <p className="text-xs font-semibold text-teal-700 dark:text-teal-400">SaansSaathi · {copy.tagline}</p>
             <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
               Breathe safer through winter smog—together.
             </h1>
-            <p className="mt-3 text-base leading-relaxed text-slate-600 dark:text-slate-300">
-              {copy.splashSubtitle}
-            </p>
+            <p className="mt-3 text-base leading-relaxed text-slate-600 dark:text-slate-300">{copy.splashSubtitle}</p>
 
             <div className="mt-6 grid grid-cols-1 gap-3 border-y border-slate-200 dark:border-slate-800 py-5 sm:grid-cols-3 text-sm">
               <div>
-                <div className="font-semibold text-slate-900 dark:text-white">
-                  Personalized Plans
-                </div>
+                <div className="font-semibold text-slate-900 dark:text-white">Personalized Plans</div>
                 <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">
                   Calibrated for kids, elders, asthma, commute &amp; kitchen fuel.
                 </p>
               </div>
               <div>
-                <div className="font-semibold text-slate-900 dark:text-white">
-                  Quantified Impact
-                </div>
+                <div className="font-semibold text-slate-900 dark:text-white">Quantified Impact</div>
                 <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">
                   Real µg/m³, kg CO₂, ₹ INR saved &amp; cigarette-equivalent math.
                 </p>
               </div>
               <div>
-                <div className="font-semibold text-slate-900 dark:text-white">
-                  Grounded &amp; Offline-Ready
-                </div>
+                <div className="font-semibold text-slate-900 dark:text-white">Grounded &amp; Offline-Ready</div>
                 <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400">
                   CPCB, WHO 2021 &amp; ICMR citations with EN / हिन्दी / ગુજરાતી voice.
                 </p>
@@ -231,10 +202,7 @@ export function SplashOnboarding({
         </div>
 
         <div className="mb-6 h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
-          <div
-            className="h-full bg-teal-700 transition-all duration-200"
-            style={{ width: `${(step / 4) * 100}%` }}
-          />
+          <div className="h-full bg-teal-700 transition-all duration-200" style={{ width: `${(step / 4) * 100}%` }} />
         </div>
 
         <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8">
@@ -242,9 +210,7 @@ export function SplashOnboarding({
           {step === 1 && (
             <div className="space-y-5">
               <div>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                  1. Where is your home?
-                </h1>
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">1. Where is your home?</h1>
                 <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
                   We fetch live local AQI, 48-hour forecast, and winter thermal inversion alerts for your area.
                 </p>
@@ -287,9 +253,7 @@ export function SplashOnboarding({
                 </form>
               </div>
 
-              {geoStatus && (
-                <p className="text-xs font-medium text-teal-800 dark:text-teal-300">{geoStatus}</p>
-              )}
+              {geoStatus && <p className="text-xs font-medium text-teal-800 dark:text-teal-300">{geoStatus}</p>}
 
               {cityResults.length > 0 && (
                 <div className="divide-y divide-slate-100 dark:divide-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -349,9 +313,7 @@ export function SplashOnboarding({
           {step === 2 && (
             <div className="space-y-5">
               <div>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                  2. Who are we protecting?
-                </h1>
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">2. Who are we protecting?</h1>
                 <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
                   Children, elders, and asthma/heart sensitivities change safe exposure limits.
                 </p>
@@ -380,9 +342,7 @@ export function SplashOnboarding({
                     min={1}
                     max={10}
                     value={profile.adults}
-                    onChange={(e) =>
-                      setProfile((p) => ({ ...p, adults: Math.max(1, Number(e.target.value) || 1) }))
-                    }
+                    onChange={(e) => setProfile((p) => ({ ...p, adults: Math.max(1, Number(e.target.value) || 1) }))}
                     className="mt-1 h-11 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 font-mono text-sm"
                   />
                 </div>
@@ -396,9 +356,7 @@ export function SplashOnboarding({
                     min={0}
                     max={8}
                     value={profile.elders}
-                    onChange={(e) =>
-                      setProfile((p) => ({ ...p, elders: Math.max(0, Number(e.target.value) || 0) }))
-                    }
+                    onChange={(e) => setProfile((p) => ({ ...p, elders: Math.max(0, Number(e.target.value) || 0) }))}
                     className="mt-1 h-11 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 font-mono text-sm"
                   />
                 </div>
@@ -413,7 +371,7 @@ export function SplashOnboarding({
                   <div className="flex flex-wrap gap-2">
                     {profile.kids.map((k, idx) => (
                       <div
-                        key={`${k.name}-${idx}`}
+                        key={`${k.name}-${k.age}`}
                         className="inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 text-xs font-medium"
                       >
                         <span>
@@ -524,15 +482,16 @@ export function SplashOnboarding({
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="ob-commute" className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  <label
+                    htmlFor="ob-commute"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
+                  >
                     Primary Commute Mode
                   </label>
                   <select
                     id="ob-commute"
                     value={profile.commuteMode}
-                    onChange={(e) =>
-                      setProfile((p) => ({ ...p, commuteMode: e.target.value as CommuteMode }))
-                    }
+                    onChange={(e) => setProfile((p) => ({ ...p, commuteMode: e.target.value as CommuteMode }))}
                     className="mt-1 h-11 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 text-sm"
                   >
                     <option value="car">Petrol / Diesel Car</option>
@@ -592,9 +551,7 @@ export function SplashOnboarding({
                   <select
                     id="ob-cook"
                     value={profile.cookingFuel}
-                    onChange={(e) =>
-                      setProfile((p) => ({ ...p, cookingFuel: e.target.value as CookingFuel }))
-                    }
+                    onChange={(e) => setProfile((p) => ({ ...p, cookingFuel: e.target.value as CookingFuel }))}
                     className="mt-1 h-11 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 text-sm"
                   >
                     <option value="lpg">LPG / Piped Gas</option>
@@ -610,9 +567,7 @@ export function SplashOnboarding({
                   <select
                     id="ob-heat"
                     value={profile.heating}
-                    onChange={(e) =>
-                      setProfile((p) => ({ ...p, heating: e.target.value as HeatingType }))
-                    }
+                    onChange={(e) => setProfile((p) => ({ ...p, heating: e.target.value as HeatingType }))}
                     className="mt-1 h-11 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 text-sm"
                   >
                     <option value="none">None / Warm Blankets</option>
@@ -629,9 +584,7 @@ export function SplashOnboarding({
                     <select
                       id="ob-home"
                       value={profile.homeType}
-                      onChange={(e) =>
-                        setProfile((p) => ({ ...p, homeType: e.target.value as HomeType }))
-                      }
+                      onChange={(e) => setProfile((p) => ({ ...p, homeType: e.target.value as HomeType }))}
                       className="h-11 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-2.5 text-sm"
                     >
                       <option value="flat">Flat / Apt</option>
@@ -702,9 +655,7 @@ export function SplashOnboarding({
                           : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50'
                       }`}
                     >
-                      <span className="text-sm font-semibold text-slate-900 dark:text-white">
-                        {title}
-                      </span>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-white">{title}</span>
                       <span className="mt-1 text-xs text-slate-600 dark:text-slate-400">{desc}</span>
                     </button>
                   );
@@ -722,9 +673,7 @@ export function SplashOnboarding({
                   max={350}
                   step={25}
                   value={profile.alertThresholdAqi}
-                  onChange={(e) =>
-                    setProfile((p) => ({ ...p, alertThresholdAqi: Number(e.target.value) }))
-                  }
+                  onChange={(e) => setProfile((p) => ({ ...p, alertThresholdAqi: Number(e.target.value) }))}
                   className="mt-2 w-full accent-teal-700"
                 />
                 <div className="flex justify-between font-mono text-[11px] text-slate-500">
