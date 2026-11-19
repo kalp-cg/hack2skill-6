@@ -105,7 +105,10 @@ Most air-quality apps show a static AQI number, while naive LLM wrappers risk ha
 - **Code Quality**:
   - TypeScript `strict` with `noUnusedLocals`/`noUnusedParameters`, and [Biome](https://biomejs.dev) lint + format (recommended rules, React hooks, a11y, import sorting): `npm run lint` reports **0 findings**. The handful of intentional exceptions carry a `biome-ignore` with the reason.
   - GitHub Actions CI (`.github/workflows/ci.yml`) runs lint, tests, the evaluation and the production build on every push.
-  - Small, single-purpose modules (largest file 445 lines); see the project structure below. Domain logic is pure and framework-free; HTTP, AI and UI layers depend on it, never the reverse.
+  - Small, single-purpose modules; see the project structure below. Domain logic is pure and framework-free; HTTP, AI and UI layers depend on it, never the reverse.
+  - Data over branching: CPCB breakpoints, AQI bands, risk thresholds and plan effects are named, documented tables; no engine function exceeds ~60 lines.
+  - Runtime contracts with [Zod](https://zod.dev) at every trust boundary (request bodies and Gemini's JSON plan), so TypeScript types are enforced at runtime too.
+  - UI consistency through shared style tokens (`components/ui/styles.ts`) and one `ModalShell`; an `ErrorBoundary` keeps a failed view from blanking the app.
 
   ```text
   src/
@@ -116,6 +119,7 @@ Most air-quality apps show a static AQI number, while naive LLM wrappers risk ha
   │   ├── routes/                 location · airQuality · assistant · community (HTTP only)
   │   ├── assistant.ts            Plan + chat services: RAG → prompts → Gemini
   │   ├── gemini.ts / prompts.ts  Retry/fallback/timeout policy · prompt builders + response schema
+  │   ├── schemas.ts              Zod contracts for request bodies and the AI plan
   │   ├── openMeteo.ts            Pure upstream → telemetry conversion
   │   ├── communityStore.ts       Bounded in-memory store
   │   └── config.ts · http.ts · security.ts · cache.ts · rag.ts
@@ -123,10 +127,11 @@ Most air-quality apps show a static AQI number, while naive LLM wrappers risk ha
   ├── hooks/                      useLiveAir · useAiPlan · useAssistantChat · useCommunities · useActionFeedback · usePersistentState
   ├── components/
   │   ├── layout/                 AppHeader · BottomNav
-  │   ├── ui/ModalShell.tsx       One accessible modal frame for every dialog
+  │   ├── ui/                     ModalShell · ErrorBoundary · style tokens
   │   └── saans/                  Feature views (Today, Plan, Impact, Ask, Community, onboarding/)
   └── data/ · types/              Static content, seed data, shared types
   api/index.ts                    Vercel serverless entry · server.ts: local dev/prod server
+  docs/                           Pitch deck outline
   ```
 - **Security**:
   - Server-side Gemini API proxy (`src/server/app.ts`) — API keys never enter browser bundles or UI.
@@ -141,10 +146,10 @@ Most air-quality apps show a static AQI number, while naive LLM wrappers risk ha
   - Code-split bundle: secondary tabs load on demand via `React.lazy`, and React / charting libraries ship as long-lived vendor chunks (app code ≈ 28 KB gzip).
   - Lean repository footprint (≈ 0.8 MB tracked, including the lockfile); illustrative photos are 1200 px WebP (~87 KB total).
 - **Testing & Automated Evaluation**:
-  - **37 / 37 automated tests passing** (`npm test`, runs every `src/**/*.test.ts`):
-    - *Engine & helpers (15)*: CPCB breakpoints, inversion detection, CADR sizing, commute savings, What-If exposure math, adaptive plan swaps, coordinate/text validation, sliding-window rate limiter, TTL LRU cache eviction, RAG citation accuracy.
-    - *Server modules (10)*: Open-Meteo conversion (incl. missing data), community store (seed isolation, ranking, caps), prompt builders (language fallback, feedback adaptation, data-only framing), situation size cap, input clamping and sanitizing.
-    - *HTTP API (12, fully offline)*: Gemini quota and stalled-request fallback to a second model, security headers, input validation, 32 KB body cap, malformed-JSON handling, oversized situation rejection, missing-key 503, bounded leaderboard, and a regression test proving a spoofed `X-Forwarded-For` cannot bypass the rate limiter.
+  - **41 / 41 automated tests passing** (`npm test`, runs every `src/**/*.test.ts`):
+    - *Engine & helpers (17)*: CPCB breakpoints (incl. readings between published segments), inversion detection, condition-aware member risk, CADR sizing, commute savings, What-If exposure math, adaptive plan swaps, coordinate/text validation, sliding-window rate limiter, TTL LRU cache eviction, RAG citation accuracy.
+    - *Server modules (11)*: Open-Meteo conversion (incl. missing data), community store (seed isolation, ranking, caps), prompt builders (language fallback, feedback adaptation, data-only framing), AI-plan schema validation, situation size cap, input clamping and sanitizing.
+    - *HTTP API (13, fully offline)*: schema validation of every request body, Gemini quota and stalled-request fallback to a second model, security headers, input validation, 32 KB body cap, malformed-JSON handling, oversized situation rejection, missing-key 503, bounded leaderboard, and a regression test proving a spoofed `X-Forwarded-For` cannot bypass the rate limiter.
   - **15-scenario evaluation harness** checking Schema, Safety Guardrails, Numeric Consistency and RAG Grounding across 15 diverse Indian household personas:
     - `npm run eval` — runs the checks on the deterministic engine plan (offline, CI-safe).
     - `npm run eval -- --live` — runs the **same checks on real Gemini-generated plans** (requires `GEMINI_API_KEY`). Latest live run: **15 / 15 passed**.
